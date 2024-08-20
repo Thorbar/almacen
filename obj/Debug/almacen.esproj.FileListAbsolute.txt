@@ -1,1 +1,2 @@
 C:\Users\RIBE_\source\repos\almacen\obj\Debug\almacen.esproj.CoreCompileInputs.cache
+C:\Users\RIBE_\source\repos\Almacen_firebase2\obj\Debug\almacen.esproj.CoreCompileInputs.cache

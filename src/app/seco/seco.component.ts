@@ -4,7 +4,7 @@ import { BarcodeFormat } from '@zxing/library';
 import { HttpClient } from '@angular/common/http';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators'; // Importar el operador map
 
 interface Producto {
   cantidadStock: number;
@@ -27,9 +27,11 @@ export class SecoComponent implements OnInit {
   action: string | null = null;
   messageVisible: boolean = false;
   formats: BarcodeFormat[] = [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.EAN_13, BarcodeFormat.ITF];
-  selectedDevice: MediaDeviceInfo | undefined;
-  availableDevices: MediaDeviceInfo[] = [];
-
+  selectedDevice: MediaDeviceInfo | undefined; // Cambiado de null a undefined
+  availableDevices: MediaDeviceInfo[] = []; // Lista de dispositivos disponibles
+  username: string = 'default_user'; // Cambia esto según tu lógica
+  isProcessing: boolean = false; // Bandera para evitar bucles
+  isAddingProduct: boolean = false;
   constructor(
     private router: Router,
     private http: HttpClient,
@@ -37,6 +39,7 @@ export class SecoComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    // Verificar permiso de la cámara
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(() => {
@@ -47,6 +50,7 @@ export class SecoComponent implements OnInit {
         });
     }
 
+    // Configuración del reconocimiento de voz
     this.setupVoiceRecognition();
   }
 
@@ -80,22 +84,24 @@ export class SecoComponent implements OnInit {
   handleVoiceCommand(command: string) {
     if (command.includes('agregar')) {
       this.action = 'agregar';
+      this.isProcessing = true;
+      this.handleAgregar();
+      // this.showLoading('Agregando producto');
     } else if (command.includes('retirar')) {
       this.action = 'retirar';
+      // this.showLoading('Retirando producto');
     } else {
       alert('Comando no reconocido. Intenta decir "agregar" o "retirar".');
     }
     this.stopVoiceRecognition();
   }
-
+  /*
   showLoading(message: string) {
     alert(message);
-    setTimeout(() => {
       this.action = null;
-      this.scannedResult = null;
-      this.router.navigate(['/articulos']);
-    }, 2000);
-  }
+      this.scannedResult = null; // Limpiar resultado del QR
+      this.router.navigate(['/articulos']); // Navegar a la página anterior
+  }*/
 
   stopVoiceRecognition() {
     if (this.recognition) {
@@ -103,51 +109,62 @@ export class SecoComponent implements OnInit {
     }
   }
 
-  onCodeResult(result: any) {
-    this.scannedResult = result.text;
-    if (this.hasPermission) {
-      alert('Código QR detectado. ¿Deseas agregar o retirar el producto?');
-      setTimeout(() => {
-        this.scannedResult = null;
-      }, 1000);
-      this.startVoiceRecognition();
-    } else {
-      alert('Permiso para acceder a la cámara no concedido.');
+  // Método llamado cuando se escanea un código QR
+  onCodeResult(result: string) {
+    if (!this.isProcessing) {  // Evita procesar múltiples veces el mismo código
+      this.isProcessing = true; // Marca como en proceso
+      this.scannedResult = result;
+      if (this.hasPermission) {
+        alert('Código QR detectado. ¿Deseas agregar o retirar el producto?');
+        this.startVoiceRecognition();
+      } else {
+        alert('Permiso para acceder a la cámara no concedido.');
+      }
     }
   }
 
+  // Método para manejar los dispositivos encontrados
   onCamerasFound(devices: MediaDeviceInfo[]) {
     this.availableDevices = devices;
+    // Por ejemplo, seleccionar el primer dispositivo si hay varios disponibles
     if (devices.length > 0) {
       this.selectedDevice = devices[0];
     }
   }
 
+  // Método para navegar hacia atrás
   volver() {
     this.router.navigate(['/articulos']);
   }
 
   handleAgregar() {
-    if (this.scannedResult) {
+    if (this.scannedResult && !this.isAddingProduct) {
       this.firestore.collection('productos', ref => ref.where('codigo', '==', this.scannedResult))
         .snapshotChanges()
         .pipe(
           map(actions => actions.map(a => {
             const data = a.payload.doc.data() as Producto;
             const docId = a.payload.doc.id;
-            return { ...data, docId };
-          }))
-        )
+            return { ...data, docId };  // Agregar el id del documento al objeto producto
+          })),
+          take(1)
+      )                
         .subscribe((productos: (Producto & { docId: string })[]) => {
-          if (productos.length > 0) {
-            const producto = productos[0];
-            this.promptForQuantity(producto);
-          } else {
+          if (productos.length === 0) {
+            this.isAddingProduct = true; // Establecer isAddingProduct en true antes de llamar a promptForNewProductDetails
             this.promptForNewProductDetails();
+            //  this.promptForQuantity(producto);  // Actualiza el producto existente
+          } else if (productos.length > 0) {
+            alert(productos.length);
+            const producto = productos[0];
+            alert('Producto existente');
+             this.promptForQuantity(producto);  // Actualiza el producto existente
           }
+          this.isProcessing = false;
         });
     } else {
       alert('No se ha detectado ningún código.');
+     // this.isProcessing = false;
     }
   }
 
@@ -158,44 +175,119 @@ export class SecoComponent implements OnInit {
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         this.firestore.collection('productos').doc(producto.docId)
           .update({ cantidadStock: producto.cantidadStock + cantidadNumerica })
-          .then(() => alert('Cantidad actualizada'))
-          .catch(error => console.error('Error al actualizar cantidad: ', error));
+          .then(() => {
+            alert('Cantidad actualizada');
+            this.scannedResult = null;  // Limpiar el resultado escaneado para evitar bucles
+            this.isProcessing = false;  // Restablecer la bandera de procesamiento
+          })
+          .catch(error => {
+            console.error('Error al actualizar cantidad: ', error);
+            this.isProcessing = false;  // Restablecer la bandera en caso de error
+          });
       } else {
         alert('Cantidad no válida.');
-      }
-    }
-  }
-
-  promptForNewProductDetails() {
-    const descripcion = prompt('Ingrese la descripción del nuevo producto:', '');
-    const establecimiento = prompt('Ingrese el establecimiento:', '');
-    const precio = prompt('Ingrese el precio:', '0');
-    const cantidad = prompt('Ingrese la cantidad inicial:', '1');
-
-    if (descripcion && establecimiento && precio && cantidad) {
-      const precioNumerico = parseFloat(precio);
-      const cantidadNumerica = parseInt(cantidad, 10);
-
-      if (!isNaN(precioNumerico) && !isNaN(cantidadNumerica) && cantidadNumerica > 0) {
-        this.obtenerNuevoId().subscribe(nuevoId => {
-          this.firestore.collection('productos').add({
-            cantidadStock: cantidadNumerica,
-            codigo: this.scannedResult,
-            descripcion: descripcion,
-            establecimiento: establecimiento,
-            id: nuevoId,
-            precio: precioNumerico
-          })
-            .then(() => alert('Producto creado'))
-            .catch(error => console.error('Error al crear producto: ', error));
-        });
-      } else {
-        alert('Datos no válidos.');
+        this.isProcessing = false;  // Restablecer la bandera si la cantidad no es válida
       }
     } else {
-      alert('Todos los campos son obligatorios.');
+      this.isProcessing = false;  // Restablecer la bandera si no se ingresa cantidad
     }
   }
+
+
+  promptForNewProductDetails() {
+    function soloLetras(cadena: string): boolean {
+      return /^[a-zA-Z\s]+$/.test(cadena);
+    }
+    let descripcion: string | null = '';
+    let establecimiento: string | null = '';
+    // Solicitar descripción hasta que se ingrese un valor válido
+    while (!descripcion) {
+      descripcion = prompt('Ingrese la descripción del nuevo producto:', '');
+      if (!descripcion) {
+        alert('La descripción es obligatoria. Por favor, ingrese un valor.');
+        descripcion = null;
+      }
+      else if (!soloLetras(descripcion)) {
+        alert('La descripción solo puede contener letras. Por favor, inténtelo nuevamente.');
+        descripcion = null;
+      }
+    }
+    // Solicitar establecimiento hasta que se ingrese un valor válido
+    while (!establecimiento) {
+      establecimiento = prompt('Ingrese el establecimiento:', '');
+      if (!establecimiento) {
+        alert('El establecimiento es obligatorio. Por favor, ingrese un valor.');
+        establecimiento = null;
+      }
+      else if (!soloLetras(establecimiento)) {
+        alert('La descripción solo puede contener letras. Por favor, inténtelo nuevamente.');
+        establecimiento = null;
+      }
+    }
+
+    let precioNumerico: number | null = null;
+    while (precioNumerico === null || isNaN(precioNumerico) || precioNumerico <= 0) {
+      const precio = prompt('Ingrese el precio:', '0');
+      precioNumerico = parseFloat(precio as string);
+      if (isNaN(precioNumerico) || precioNumerico <= 0) {
+        alert('El precio no es válido. Debe ser un número mayor a 0.');
+        precioNumerico = null;  // Resetear para asegurar que se vuelva a solicitar
+      }
+    }
+
+    let cantidadComprada: number | null = null;
+    while (cantidadComprada === null || isNaN(cantidadComprada) || cantidadComprada <= 0) {
+      const cantidad = prompt('Ingrese la cantidad comprada:', '1');
+      cantidadComprada = parseFloat(cantidad as string);
+      if (isNaN(cantidadComprada) || cantidadComprada <= 0) {
+        alert('El precio no es válido. Debe ser un número mayor a 0.');
+        cantidadComprada = null;  // Resetear para asegurar que se vuelva a solicitar
+      }
+    }
+    /*
+    this.firestore.collection('productos').add({
+      cantidadStock: cantidadComprada,  // Usar la cantidad ya obtenida
+      codigo: this.scannedResult,
+      descripcion: descripcion,
+      establecimiento: establecimiento,
+      //id: nuevoId,
+      precio: precioNumerico
+    })
+      .then(() => {
+        alert('Producto creado');
+        // this.scannedResult = null;  // Limpiar el resultado escaneado
+      })
+      .catch(error => {
+        console.error('Error al crear producto: ', error);
+        this.isProcessing = false;  // Restablecer la bandera en caso de error
+        this.isAddingProduct = false;
+      });
+  }
+  */
+    
+    this.obtenerNuevoId().subscribe(nuevoId => {
+      this.firestore.collection('productos').add({
+        cantidadStock: cantidadComprada,  // Usar la cantidad ya obtenida
+        codigo: this.scannedResult,
+        descripcion: descripcion,
+        establecimiento: establecimiento,
+        id: nuevoId,
+        precio: precioNumerico
+      })
+        .then(() => {
+          alert('Producto creado');
+          // Restablecer estados después de crear el producto
+          this.scannedResult = null;
+          this.isProcessing = false;
+        })
+        .catch(error => {
+          console.error('Error al crear producto: ', error);
+          this.isProcessing = false;  // Restablecer la bandera en caso de error
+          this.isAddingProduct = false;
+        });
+    });
+  }
+  
 
   obtenerNuevoId(): Observable<number> {
     return this.firestore.collection('productos', ref => ref.orderBy('id', 'desc').limit(1))
@@ -203,11 +295,15 @@ export class SecoComponent implements OnInit {
       .pipe(
         map((productos: any[]) => {
           if (productos.length > 0 && typeof productos[0].id === 'number') {
+            // Obtén el ID del último producto y aumenta en 1
             return productos[0].id + 1;
           } else {
+            // Si no hay productos, empieza con ID 1
             return 1;
           }
-        })
+        }),
+        take(1) // Asegúrate de completar el observable después de obtener el ID
       );
   }
+
 }

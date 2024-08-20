@@ -7,7 +7,7 @@
   "type": "chrome",
   "request": "launch",
   "url": "http://localhost:4200",
-  "webRoot": "C:\\Users\\RIBE_\\source\\repos\\almacen"
+  "webRoot": "C:\\Users\\RIBE_\\source\\repos\\Almacen_firebase2"
 }</LaunchJsonTarget>
   </PropertyGroup>
 </Project>
