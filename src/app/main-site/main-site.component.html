@@ -1,9 +1,17 @@
 <h2>Que desea realizar</h2>
 
-
 <div class="button-container">
   <button (click)="consultarBaseDatos()">Consultar</button>
   <button (click)="comprobarArticulos()">Gestión de articulos</button>
   <button (click)="listaCompra()">Lista</button>
-  <button (click)="volver()">Volver</button>
+  <button (click)="cerrarSesion()">Cerrar Sesión</button>
+  <!-- <button (click)="volver()">Volver</button> -->
+</div>
+
+<!-- Spinner de carga -->
+<div *ngIf="loading" class="loading-container">
+  <div class="spinner">
+    <img src="assets/doge.jpg" alt="Doge" class="doge-icon">
+  </div>
+  <p>Loading...</p>
 </div>

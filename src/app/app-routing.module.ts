@@ -6,6 +6,7 @@ import { SecoComponent } from './seco/seco.component';
 import { ArticulosComponent } from './articulos/articulos.component';
 import { StockActualComponent } from './stock-actual/stock-actual.component';
 import { ListaCompraComponent } from './lista-compra/lista-compra.component';
+import { LoginComponent } from './login/login.component';
 
 const routes: Routes = [
   //{ path: '', redirectTo: '/', pathMatch: 'full' }, // Redirige la raíz a '/home'
@@ -14,7 +15,8 @@ const routes: Routes = [
   { path: 'seco', component: SecoComponent },
   { path: 'articulos', component: ArticulosComponent },
   { path: 'stock-actual', component: StockActualComponent },
-  { path: 'lista', component: ListaCompraComponent }
+  { path: 'lista', component: ListaCompraComponent },
+  { path: 'login', component: LoginComponent }
 
 
 ];

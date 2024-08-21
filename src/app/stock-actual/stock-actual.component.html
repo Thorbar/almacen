@@ -1,6 +1,28 @@
-<p>Aqui tenemos que poder mostrar en distintas tablas(cada sección por separado el stock actual</p>
+<h2>Stock Actual</h2>
 
+<!-- Tabla para mostrar los datos -->
+<table class="stock-table">
+  <thead>
+    <tr>
+      <th>id Articulo</th>
+      <th>Código QR</th>
+      <th>Descripción</th>
+      <th>Establecimiento</th>
+      <th>Precio</th>
+      <th>Cantidad en Stock</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let producto of productos$ | async">
+      <td>{{ producto.id }}</td>
+      <td>{{ producto.codigo }}</td>
+      <td>{{ producto.descripcion }}</td>
+      <td>{{ producto.establecimiento }}</td>
+      <td>{{ producto.precio | currency }}</td>
+      <td>{{ producto.cantidadStock }}</td>
+    </tr>
+  </tbody>
+</table>
 
-<div class="button-container">
-  <button (click)="volver()">Volver</button>
-</div>
+<!-- Botón para volver -->
+<button (click)="volver()">Volver</button>

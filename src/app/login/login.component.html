@@ -1,0 +1,14 @@
+<div *ngIf="showWelcome">
+  <h1>Bienvenido</h1>
+  <input [(ngModel)]="email" type="text" placeholder="Username" required>
+  <input [(ngModel)]="password" type="password" placeholder="Password" required>
+  <button (click)="login()">Login</button>
+</div>
+
+<!-- Spinner de carga -->
+<div *ngIf="loading" class="loading-container">
+  <div class="spinner">
+    <img src="assets/doge.jpg" alt="Doge" class="doge-icon">
+  </div>
+  <p>Loading...</p>
+</div>

@@ -6,7 +6,7 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators'; // Importar el operador map
 
-interface Producto {
+export interface Producto {
   cantidadStock: number;
   codigo: string;
   descripcion: string;
@@ -26,7 +26,10 @@ export class SecoComponent implements OnInit {
   scannedResult: string | null = null;
   action: string | null = null;
   messageVisible: boolean = false;
-  formats: BarcodeFormat[] = [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.EAN_13, BarcodeFormat.ITF];
+  formats: BarcodeFormat[] = [BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.EAN_13, BarcodeFormat.ITF,
+                              BarcodeFormat.CODE_39, BarcodeFormat.CODABAR, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+                              BarcodeFormat.EAN_8
+  ];
   selectedDevice: MediaDeviceInfo | undefined; // Cambiado de null a undefined
   availableDevices: MediaDeviceInfo[] = []; // Lista de dispositivos disponibles
   username: string = 'default_user'; // Cambia esto según tu lógica
@@ -89,7 +92,8 @@ export class SecoComponent implements OnInit {
       // this.showLoading('Agregando producto');
     } else if (command.includes('retirar')) {
       this.action = 'retirar';
-      // this.showLoading('Retirando producto');
+      this.isProcessing = true;
+      this.handleRetirar(); // Llamar al método para retirar
     } else {
       alert('Comando no reconocido. Intenta decir "agregar" o "retirar".');
     }
@@ -165,6 +169,64 @@ export class SecoComponent implements OnInit {
     } else {
       alert('No se ha detectado ningún código.');
      // this.isProcessing = false;
+    }
+  }
+
+  // Nueva función para retirar productos
+  handleRetirar() {
+    if (this.scannedResult) {
+      this.firestore.collection('productos', ref => ref.where('codigo', '==', this.scannedResult))
+        .snapshotChanges()
+        .pipe(
+          map(actions => actions.map(a => {
+            const data = a.payload.doc.data() as Producto;
+            const docId = a.payload.doc.id;
+            return { ...data, docId };  // Agregar el id del documento al objeto producto
+          })),
+          take(1)
+        )
+        .subscribe((productos: (Producto & { docId: string })[]) => {
+          if (productos.length > 0) {
+            const producto = productos[0];
+            this.promptForRetirarCantidad(producto);  // Llamar a la función para retirar cantidad
+          } else {
+            alert('Producto no encontrado.');
+            this.isProcessing = false;
+          }
+        });
+    } else {
+      alert('No se ha detectado ningún código.');
+      this.isProcessing = false;
+    }
+  }
+
+  promptForRetirarCantidad(producto: Producto & { docId: string }) {
+    const cantidad = prompt('Ingrese la cantidad a retirar:', '1');
+    if (cantidad) {
+      const cantidadNumerica = parseInt(cantidad, 10);
+      if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
+        if (producto.cantidadStock >= cantidadNumerica) {
+          this.firestore.collection('productos').doc(producto.docId)
+            .update({ cantidadStock: producto.cantidadStock - cantidadNumerica })
+            .then(() => {
+              alert('Cantidad actualizada');
+              this.scannedResult = null;  // Limpiar el resultado escaneado
+              this.isProcessing = false;  // Restablecer la bandera de procesamiento
+            })
+            .catch(error => {
+              console.error('Error al actualizar cantidad: ', error);
+              this.isProcessing = false;  // Restablecer la bandera en caso de error
+            });
+        } else {
+          alert('No hay suficiente stock para retirar esa cantidad.');
+          this.isProcessing = false;
+        }
+      } else {
+        alert('Cantidad no válida.');
+        this.isProcessing = false;  // Restablecer la bandera si la cantidad no es válida
+      }
+    } else {
+      this.isProcessing = false;  // Restablecer la bandera si no se ingresa cantidad
     }
   }
 

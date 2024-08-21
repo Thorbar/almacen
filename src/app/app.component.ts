@@ -10,10 +10,10 @@ export class AppComponent {
   showWelcome = true;
 
   constructor(private router: Router) { }
-
+/*
   irAlSupermercado() {
     this.showWelcome = false;
     this.router.navigate(['/main-site']);
-  }
+  }*/
 }
 

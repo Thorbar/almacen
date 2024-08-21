@@ -1,4 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { AngularFirestore } from '@angular/fire/compat/firestore';
+import { Observable } from 'rxjs';
+import { Producto } from '../seco/seco.component'; // Importa la interfaz Producto
 import { Router } from '@angular/router';
 
 @Component({
@@ -6,10 +9,19 @@ import { Router } from '@angular/router';
   templateUrl: './lista-compra.component.html',
   styleUrl: './lista-compra.component.css'
 })
-export class ListaCompraComponent {
+export class ListaCompraComponent implements OnInit {
+  productos$?: Observable<Producto[]>;
 
-  constructor(private router: Router) { }
 
+  constructor(private firestore: AngularFirestore,
+              private router: Router) {}
+
+  ngOnInit() {
+    // Filtra los productos con cantidad en stock <= 1
+    this.productos$ = this.firestore.collection<Producto>('productos', ref =>
+      ref.where('cantidadStock', '<=', 1)
+    ).valueChanges();
+  }
 
   volver() {
     this.router.navigate(['/main-site']);

@@ -16,6 +16,9 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../environments/environment';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { LoginComponent } from './login/login.component';
+
 
 @NgModule({
   declarations: [
@@ -24,7 +27,8 @@ import { AngularFireModule } from '@angular/fire/compat';
     SecoComponent,
     ArticulosComponent,
     StockActualComponent,
-    ListaCompraComponent
+    ListaCompraComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
@@ -32,7 +36,8 @@ import { AngularFireModule } from '@angular/fire/compat';
     AppRoutingModule,
     ZXingScannerModule,
     FormsModule,
-    AngularFireModule.initializeApp(environment.firebaseConfig)
+    AngularFireModule.initializeApp(environment.firebaseConfig),
+    AngularFireAuthModule
   ],
   providers: [
     //provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),

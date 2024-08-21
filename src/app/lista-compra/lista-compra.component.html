@@ -1,5 +1,28 @@
-<p>Aqui debe mostrar una tabla donde se vean los articulos a comprar, items <= 1 unidad</p>
+<h2>Lista de Compra</h2>
 
+<!-- Tabla para mostrar los artículos con stock bajo -->
+<table class="stock-table">
+  <thead>
+    <tr>
+      <th>id Articulo</th>
+      <th>Código QR</th>
+      <th>Descripción</th>
+      <th>Establecimiento</th>
+      <th>Precio</th>
+      <th>Cantidad en Stock</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let producto of productos$ | async">
+      <td>{{ producto.id }}</td>
+      <td>{{ producto.codigo }}</td>
+      <td>{{ producto.descripcion }}</td>
+      <td>{{ producto.establecimiento }}</td>
+      <td>{{ producto.precio | currency }}</td>
+      <td>{{ producto.cantidadStock }}</td>
+    </tr>
+  </tbody>
+</table>
 
 <div class="button-container">
   <button (click)="volver()">Volver</button>
