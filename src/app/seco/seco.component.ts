@@ -204,6 +204,13 @@ export class SecoComponent implements OnInit {
     const cantidad = prompt('Ingrese la cantidad a retirar:', '1');
     if (cantidad) {
       const cantidadNumerica = parseInt(cantidad, 10);
+      if (cantidadNumerica === 0) {
+        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
+        if (cancelar) {
+          this.cancelarOperacion();
+          return;
+        }
+      }
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         if (producto.cantidadStock >= cantidadNumerica) {
           this.firestore.collection('productos').doc(producto.docId)
@@ -230,10 +237,18 @@ export class SecoComponent implements OnInit {
     }
   }
 
+  // Modificación de promptForQuantity
   promptForQuantity(producto: Producto & { docId: string }) {
     const cantidad = prompt('Ingrese la cantidad a agregar:', '1');
     if (cantidad) {
       const cantidadNumerica = parseInt(cantidad, 10);
+      if (cantidadNumerica === 0) {
+        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
+        if (cancelar) {
+          this.cancelarOperacion();
+          return;
+        }
+      }
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         this.firestore.collection('productos').doc(producto.docId)
           .update({ cantidadStock: producto.cantidadStock + cantidadNumerica })
@@ -256,33 +271,33 @@ export class SecoComponent implements OnInit {
   }
 
 
+  // Modificación de promptForNewProductDetails
   promptForNewProductDetails() {
     function soloLetras(cadena: string): boolean {
       return /^[a-zA-Z\s]+$/.test(cadena);
     }
+
     let descripcion: string | null = '';
     let establecimiento: string | null = '';
-    // Solicitar descripción hasta que se ingrese un valor válido
+
     while (!descripcion) {
       descripcion = prompt('Ingrese la descripción del nuevo producto:', '');
       if (!descripcion) {
         alert('La descripción es obligatoria. Por favor, ingrese un valor.');
         descripcion = null;
-      }
-      else if (!soloLetras(descripcion)) {
+      } else if (!soloLetras(descripcion)) {
         alert('La descripción solo puede contener letras. Por favor, inténtelo nuevamente.');
         descripcion = null;
       }
     }
-    // Solicitar establecimiento hasta que se ingrese un valor válido
+
     while (!establecimiento) {
       establecimiento = prompt('Ingrese el establecimiento:', '');
       if (!establecimiento) {
         alert('El establecimiento es obligatorio. Por favor, ingrese un valor.');
         establecimiento = null;
-      }
-      else if (!soloLetras(establecimiento)) {
-        alert('La descripción solo puede contener letras. Por favor, inténtelo nuevamente.');
+      } else if (!soloLetras(establecimiento)) {
+        alert('El establecimiento solo puede contener letras. Por favor, inténtelo nuevamente.');
         establecimiento = null;
       }
     }
@@ -291,6 +306,13 @@ export class SecoComponent implements OnInit {
     while (precioNumerico === null || isNaN(precioNumerico) || precioNumerico <= 0) {
       const precio = prompt('Ingrese el precio:', '0');
       precioNumerico = parseFloat(precio as string);
+      if (precioNumerico === 0) {
+        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
+        if (cancelar) {
+          this.cancelarOperacion();
+          return;
+        }
+      }
       if (isNaN(precioNumerico) || precioNumerico <= 0) {
         alert('El precio no es válido. Debe ser un número mayor a 0.');
         precioNumerico = null;  // Resetear para asegurar que se vuelva a solicitar
@@ -301,35 +323,22 @@ export class SecoComponent implements OnInit {
     while (cantidadComprada === null || isNaN(cantidadComprada) || cantidadComprada <= 0) {
       const cantidad = prompt('Ingrese la cantidad comprada:', '1');
       cantidadComprada = parseFloat(cantidad as string);
+      if (cantidadComprada === 0) {
+        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
+        if (cancelar) {
+          this.cancelarOperacion();
+          return;
+        }
+      }
       if (isNaN(cantidadComprada) || cantidadComprada <= 0) {
-        alert('El precio no es válido. Debe ser un número mayor a 0.');
+        alert('La cantidad no es válida. Debe ser un número mayor a 0.');
         cantidadComprada = null;  // Resetear para asegurar que se vuelva a solicitar
       }
     }
-    /*
-    this.firestore.collection('productos').add({
-      cantidadStock: cantidadComprada,  // Usar la cantidad ya obtenida
-      codigo: this.scannedResult,
-      descripcion: descripcion,
-      establecimiento: establecimiento,
-      //id: nuevoId,
-      precio: precioNumerico
-    })
-      .then(() => {
-        alert('Producto creado');
-        // this.scannedResult = null;  // Limpiar el resultado escaneado
-      })
-      .catch(error => {
-        console.error('Error al crear producto: ', error);
-        this.isProcessing = false;  // Restablecer la bandera en caso de error
-        this.isAddingProduct = false;
-      });
-  }
-  */
-    
+
     this.obtenerNuevoId().subscribe(nuevoId => {
       this.firestore.collection('productos').add({
-        cantidadStock: cantidadComprada,  // Usar la cantidad ya obtenida
+        cantidadStock: cantidadComprada,
         codigo: this.scannedResult,
         descripcion: descripcion,
         establecimiento: establecimiento,
@@ -338,18 +347,26 @@ export class SecoComponent implements OnInit {
       })
         .then(() => {
           alert('Producto creado');
-          // Restablecer estados después de crear el producto
           this.scannedResult = null;
           this.isProcessing = false;
         })
         .catch(error => {
           console.error('Error al crear producto: ', error);
-          this.isProcessing = false;  // Restablecer la bandera en caso de error
+          this.isProcessing = false;
           this.isAddingProduct = false;
         });
     });
   }
-  
+
+  // Nueva función cancelarOperacion
+  cancelarOperacion() {
+    alert('Operación cancelada. Volviendo a la cámara.');
+    this.scannedResult = null;
+    this.isProcessing = false;
+    this.isAddingProduct = false;
+    // Aquí puedes agregar lógica adicional para reiniciar el escáner de código QR si es necesario
+  }
+
 
   obtenerNuevoId(): Observable<number> {
     return this.firestore.collection('productos', ref => ref.orderBy('id', 'desc').limit(1))

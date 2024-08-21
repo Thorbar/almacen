@@ -8,6 +8,7 @@ import { StockActualComponent } from './stock-actual/stock-actual.component';
 import { ListaCompraComponent } from './lista-compra/lista-compra.component';
 import { LoginComponent } from './login/login.component';
 
+
 const routes: Routes = [
   //{ path: '', redirectTo: '/', pathMatch: 'full' }, // Redirige la raíz a '/home'
   { path: 'home', component: AppComponent },
