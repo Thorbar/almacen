@@ -30,8 +30,8 @@ export class ArticulosComponent implements OnInit {
   action: string | null = null;
   messageVisible: boolean = false;
   formats: BarcodeFormat[] = [
-    BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.EAN_13, 
-    BarcodeFormat.ITF, BarcodeFormat.CODE_39, BarcodeFormat.CODABAR, 
+    BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.EAN_13,
+    BarcodeFormat.ITF, BarcodeFormat.CODE_39, BarcodeFormat.CODABAR,
     BarcodeFormat.UPC_A, BarcodeFormat.UPC_E, BarcodeFormat.EAN_8
   ];
   selectedDevice: MediaDeviceInfo | undefined;
@@ -69,27 +69,21 @@ export class ArticulosComponent implements OnInit {
     // Configuración del reconocimiento de voz
     this.setupVoiceRecognition();
 
-    // Preguntar por la categoría antes de iniciar el escaneo
-    this.promptForCategory();
+    // Preguntar por la categoría con reconocimiento de voz antes de iniciar el escaneo
+    this.promptForCategoryVoice();
   }
 
-  promptForCategory() {
-    const categorias = Object.keys(this.baseDatosCategorias).join(', ');
-    const categoria = prompt(`Seleccione una categoría: ${categorias}`);
-    
-    if (categoria && this.baseDatosCategorias[categoria]) {
-      this.categoriaSeleccionada = this.baseDatosCategorias[categoria];
-    } else {
-      alert('Categoría no válida. Inténtelo de nuevo.');
-      this.promptForCategory();  // Volver a preguntar si la categoría no es válida
-    }
+  // Método para preguntar por la categoría usando reconocimiento de voz
+  promptForCategoryVoice() {
+    alert('Diga la categoría en la que desea operar: Congelado, Fresco, Limpieza, o Seco.');
+    this.startVoiceRecognition();
   }
 
   setupVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window)) {
       alert('Web Speech API no está disponible en este navegador.');
       return;
-    }    
+    }
 
     this.recognition = new (window as any).webkitSpeechRecognition();
     this.recognition.continuous = false;
@@ -113,7 +107,12 @@ export class ArticulosComponent implements OnInit {
   }
 
   handleVoiceCommand(command: string) {
-    if (command.includes('agregar')) {
+    const categorias = ['congelado', 'fresco', 'limpieza', 'seco'];
+    if (categorias.includes(command)) {
+      this.categoriaSeleccionada = this.baseDatosCategorias[command.charAt(0).toUpperCase() + command.slice(1)];
+      alert(`Categoría seleccionada: ${command.charAt(0).toUpperCase() + command.slice(1)}`);
+      this.activateCamera(); // Activar la cámara después de seleccionar la categoría
+    } else if (command.includes('agregar')) {
       this.action = 'agregar';
       this.isProcessing = true;
       this.handleAgregar();
@@ -125,8 +124,14 @@ export class ArticulosComponent implements OnInit {
       this.action = 'eliminar';
       this.isProcessing = true;
       this.handleEliminar();
+    } else if (command.includes('cambiar')) {
+      this.cambiarBaseDatos();
+    } else if (command.includes('continuar')) {
+      this.continuarEnBaseDatos();
+    } else if (command.includes('salir')) {
+      this.volver(); // Llamar a la función volver para salir
     } else {
-      alert('Comando no reconocido. Intenta decir "agregar" o "retirar".');
+      alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar", "cambiar" o "continuar".');
     }
     this.stopVoiceRecognition();
   }
@@ -137,12 +142,27 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
+  activateCamera() {
+    // Verificar permiso de la cámara y activarla
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          this.hasPermission = true;
+          alert('Cámara activada. Escanee un código.');
+        })
+        .catch(() => {
+          this.hasPermission = false;
+          alert('Permiso para acceder a la cámara no concedido.');
+        });
+    }
+  }
+
   onCodeResult(result: string) {
     if (!this.isProcessing) {
       this.isProcessing = true;
       this.scannedResult = result;
       if (this.hasPermission) {
-        alert('Código QR detectado. ¿Deseas agregar o retirar el producto?');
+        alert('Código QR detectado. ¿Deseas agregar, retirar, eliminar el producto, cambiar o continuar en la misma base de datos?');
         this.startVoiceRecognition();
       } else {
         alert('Permiso para acceder a la cámara no concedido.');
@@ -158,7 +178,7 @@ export class ArticulosComponent implements OnInit {
   }
 
   volver() {
-    this.router.navigate(['/articulos']);
+    this.router.navigate(['/main-site']);
   }
 
   handleAgregar() {
@@ -231,21 +251,22 @@ export class ArticulosComponent implements OnInit {
         if (producto.cantidadStock >= cantidadNumerica) {
           const fechaUltimoRetiro = new Date(); // Se registra la fecha del último retiro
           this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
-            .update({ 
+            .update({
               cantidadStock: producto.cantidadStock - cantidadNumerica,
               fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro
             })
             .then(() => {
-              alert('Cantidad actualizada');
+              alert('Cantidad retirada');
               this.scannedResult = null;
               this.isProcessing = false;
+              this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
             })
             .catch(error => {
-              console.error('Error al actualizar cantidad: ', error);
+              console.error('Error al retirar cantidad: ', error);
               this.isProcessing = false;
             });
         } else {
-          alert('No hay suficiente stock para retirar esa cantidad.');
+          alert('No hay suficiente cantidad en stock.');
           this.isProcessing = false;
         }
       } else {
@@ -253,10 +274,10 @@ export class ArticulosComponent implements OnInit {
         this.isProcessing = false;
       }
     } else {
+      alert('Operación cancelada.');
       this.isProcessing = false;
     }
   }
-  
 
   promptForQuantity(producto: Producto & { docId: string }) {
     const cantidad = prompt('Ingrese la cantidad a agregar:', '1');
@@ -272,7 +293,7 @@ export class ArticulosComponent implements OnInit {
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         const fechaUltimaCompra = new Date(); // Se registra la fecha de la última compra
         this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
-          .update({ 
+          .update({
             cantidadStock: producto.cantidadStock + cantidadNumerica,
             fechaUltimaCompra: fechaUltimaCompra  // Se actualiza la fecha de la última compra
           })
@@ -280,6 +301,7 @@ export class ArticulosComponent implements OnInit {
             alert('Cantidad actualizada');
             this.scannedResult = null;
             this.isProcessing = false;
+            this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
           })
           .catch(error => {
             console.error('Error al actualizar cantidad: ', error);
@@ -290,83 +312,74 @@ export class ArticulosComponent implements OnInit {
         this.isProcessing = false;
       }
     } else {
+      alert('Operación cancelada.');
       this.isProcessing = false;
     }
   }
-  
+
   promptForNewProductDetails() {
-    function soloLetras(cadena: string): boolean {
-      return /^[a-zA-Z\s]+$/.test(cadena);
+    const descripcion = prompt('Ingrese la descripción del producto:');
+    const establecimiento = prompt('Ingrese el nombre del establecimiento:');
+    const precio = prompt('Ingrese el precio del producto:');
+    const cantidad = prompt('Ingrese la cantidad en stock:');
+
+    if (descripcion && establecimiento && precio && cantidad) {
+      const fechaCreacion = new Date();  // Se registra la fecha de creación del nuevo producto
+      const nuevoProducto: Producto = {
+        descripcion,
+        establecimiento,
+        precio: parseFloat(precio),
+        cantidadStock: parseInt(cantidad, 10),
+        codigo: this.scannedResult!,
+        id: Date.now(),  // Usa la fecha actual como un ID simple, ajusta según tu lógica
+        fechaCreacion: fechaCreacion  // Se guarda la fecha de creación
+      };
+
+      this.firestore.collection(this.categoriaSeleccionada!)
+        .add(nuevoProducto)
+        .then(() => {
+          alert('Producto agregado');
+          this.scannedResult = null;
+          this.isAddingProduct = false;
+          this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
+        })
+        .catch(error => {
+          console.error('Error al agregar producto: ', error);
+          this.isAddingProduct = false;
+        });
+    } else {
+      alert('Debe completar todos los campos.');
+      this.isAddingProduct = false;
     }
-  
-    let descripcion: string | null = '';
-    let establecimiento: string | null = '';
-  
-    while (!descripcion) {
-      descripcion = prompt('Ingrese la descripción del nuevo producto:', '');
-      if (!descripcion) {
-        alert('La descripción es obligatoria. Por favor, ingrese un valor.');
-        descripcion = null;
-      } else if (!soloLetras(descripcion)) {
-        alert('La descripción solo puede contener letras. Por favor, inténtelo nuevamente.');
-        descripcion = null;
-      }
-    }
-  
-    while (!establecimiento) {
-      establecimiento = prompt('Ingrese el establecimiento:', '');
-      if (!establecimiento) {
-        alert('El establecimiento es obligatorio. Por favor, ingrese un valor.');
-        establecimiento = null;
-      } else if (!soloLetras(establecimiento)) {
-        alert('El establecimiento solo puede contener letras. Por favor, inténtelo nuevamente.');
-        establecimiento = null;
-      }
-    }
-  
-    if (descripcion && establecimiento) {
-      const cantidad = prompt('Ingrese la cantidad inicial:', '1');
-      const cantidadNumerica = cantidad ? parseInt(cantidad, 10) : 0;
-  
-      if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
-        const precio = prompt('Ingrese el precio:', '1');
-        const precioNumerico = precio ? parseFloat(precio) : 0;
-  
-        if (!isNaN(precioNumerico) && precioNumerico > 0) {
-          const fechaCreacion = new Date(); // Se registra la fecha de creación
-          const fechaUltimaCompra = new Date();
-  
-          this.firestore.collection(this.categoriaSeleccionada!).add({
-            codigo: this.scannedResult,
-            descripcion: descripcion,
-            establecimiento: establecimiento,
-            cantidadStock: cantidadNumerica,
-            precio: precioNumerico,
-            fechaCreacion: fechaCreacion,  // Se agrega la fecha de creación
-            fechaUltimaCompra: fechaUltimaCompra
-          })
-          .then(() => {
-            alert('Producto agregado correctamente');
-            this.scannedResult = null;
-            this.isProcessing = false;
-          })
-          .catch(error => {
-            console.error('Error al agregar producto: ', error);
-            this.isProcessing = false;
-          });
-        } else {
-          alert('Precio no válido.');
+  }
+
+  cancelarOperacion() {
+    this.isProcessing = false;
+    this.scannedResult = null;
+    alert('Operación cancelada.');
+  }
+
+  eliminarProducto(producto: Producto & { docId: string }) {
+    const confirmar = confirm('¿Estás seguro de que quieres eliminar este producto?');
+    if (confirmar) {
+      this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
+        .delete()
+        .then(() => {
+          alert('Producto eliminado');
+          this.scannedResult = null;
           this.isProcessing = false;
-        }
-      } else {
-        alert('Cantidad no válida.');
-        this.isProcessing = false;
-      }
+          this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
+        })
+        .catch(error => {
+          console.error('Error al eliminar producto: ', error);
+          this.isProcessing = false;
+        });
     } else {
       this.isProcessing = false;
+      this.scannedResult = null;
     }
   }
-  
+
   handleEliminar() {
     if (this.scannedResult) {
       this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
@@ -382,13 +395,7 @@ export class ArticulosComponent implements OnInit {
         .subscribe((productos: (Producto & { docId: string })[]) => {
           if (productos.length > 0) {
             const producto = productos[0];
-            const confirmacion = confirm(`Está seguro de que desea eliminar ${producto.descripcion} de la base de datos ${this.categoriaSeleccionada}?`);
-            if (confirmacion) {
-              this.eliminarArticulo(producto.docId);
-            } else {
-              alert('Operación cancelada.');
-              this.isProcessing = false;
-            }
+            this.eliminarProducto(producto);
           } else {
             alert('Producto no encontrado.');
             this.isProcessing = false;
@@ -400,23 +407,20 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
-  eliminarArticulo(docId: string) {
-    this.firestore.collection(this.categoriaSeleccionada!).doc(docId).delete()
-      .then(() => {
-        alert('Producto eliminado correctamente');
-        this.scannedResult = null;
-        this.isProcessing = false;
-      })
-      .catch(error => {
-        console.error('Error al eliminar producto: ', error);
-        this.isProcessing = false;
-      });
+  preguntarCambioDeBaseDatos() {
+    const deseaCambiar = confirm('¿Desea cambiar de base de datos? (Aceptar para cambiar, Cancelar para continuar en la misma)');
+    if (deseaCambiar) {
+      this.cambiarBaseDatos();
+    } else {
+      this.continuarEnBaseDatos();
+    }
   }
-  
-  
-  cancelarOperacion() {
-    this.isProcessing = false;
-    this.scannedResult = null;
-    this.isAddingProduct = false;
+
+  cambiarBaseDatos() {
+    this.promptForCategoryVoice();
+  }
+
+  continuarEnBaseDatos() {
+    alert(`Continuando en la base de datos actual: ${this.categoriaSeleccionada}`);
   }
 }
