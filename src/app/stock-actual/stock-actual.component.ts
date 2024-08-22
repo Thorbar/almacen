@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
-import { Producto } from '../seco/seco.component'; // Asegúrate de importar la interfaz Producto
+import { Producto } from '../articulos/articulos.component'; // Importa la interfaz Producto
 
 import { Router } from '@angular/router';
 

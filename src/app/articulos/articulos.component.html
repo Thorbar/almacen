@@ -1,10 +1,27 @@
-<h2>Que desea realizar</h2>
+<!-- Contenido cuando se tiene permiso para usar la cámara -->
+<div *ngIf="hasPermission">
+  <h2>Pantalla para Seco</h2>
 
+  <!-- Lector QR y de códigos de barras -->
+  <zxing-scanner [device]="selectedDevice"
+                 (camerasFound)="onCamerasFound($event)"
+                 (scanSuccess)="onCodeResult($event)"
+                 [formats]="formats">
+  </zxing-scanner>
 
-<div class="button-container">
-  <button (click)="irASecot()">Seco</button>
-  <button (click)="irAFrescos()">Frescos</button>
-  <button (click)="irACongelado()">Congelado</button>
-  <button (click)="irALimpieza()">Limpieza</button>
+  <!-- Mostrar el resultado del código QR o de barras y la acción si se ha escaneado un código -->
+  <div *ngIf="scannedResult && !action">
+    <p>Código escaneado: {{ scannedResult }}</p>
+    <p>¿Qué quieres hacer con el producto?</p>
+    <button (click)="startVoiceRecognition()">Habla ahora para dar una instrucción</button>
+  </div>
+
+  <!-- Mostrar mensaje y barra de carga mientras se realiza una acción -->
+  <!--<div *ngIf="action">
+    <p>{{ action === 'agregar' ? 'Agregando producto...' : 'Retirando producto...' }}</p>
+    <progress value="50" max="100"></progress>
+  </div> -->
+
+  <!-- Botón para volver a la página principal -->
   <button (click)="volver()">Volver</button>
 </div>

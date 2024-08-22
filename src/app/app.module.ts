@@ -4,7 +4,6 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MainSiteComponent } from './main-site/main-site.component';
-import { SecoComponent } from './seco/seco.component';
 import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ArticulosComponent } from './articulos/articulos.component';
@@ -24,7 +23,6 @@ import { LoginComponent } from './login/login.component';
   declarations: [
     AppComponent,
     MainSiteComponent,
-    SecoComponent,
     ArticulosComponent,
     StockActualComponent,
     ListaCompraComponent,
