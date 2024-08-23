@@ -15,7 +15,7 @@ const routes: Routes = [
   { path: 'articulos', component: ArticulosComponent },
   { path: 'stock-actual', component: StockActualComponent },
   { path: 'lista', component: ListaCompraComponent },
-  { path: 'login', component: LoginComponent }
+  { path: '', component: LoginComponent }
 
 
 ];

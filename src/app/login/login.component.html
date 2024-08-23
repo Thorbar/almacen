@@ -2,7 +2,7 @@
   <h1>Bienvenido</h1>
   <input [(ngModel)]="email" type="text" placeholder="Username" required>
   <input [(ngModel)]="password" type="password" placeholder="Password" required>
-  <button (click)="login()">Login</button>
+  <button (click)="login()">{{ 'LOGIN' | translate }}</button>
 </div>
 
 <!-- Spinner de carga -->
@@ -10,5 +10,11 @@
   <div class="spinner">
     <img src="assets/doge.jpg" alt="Doge" class="doge-icon">
   </div>
-  <p>Loading...</p>
+  <p>{{ 'LOADING' | translate }}</p>
+</div>
+
+<div class="language-selector">
+  <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'"> />
+  <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'"> />
+  <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'"> />
 </div>

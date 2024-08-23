@@ -19,6 +19,8 @@
     "@angular/platform-browser": "^18.1.0",
     "@angular/platform-browser-dynamic": "^18.1.0",
     "@angular/router": "^18.1.0",
+    "@ngx-translate/core": "^15.0.0",
+    "@ngx-translate/http-loader": "^8.0.0",
     "@zxing/ngx-scanner": "^18.0.1",
     "firebase": "^10.12.5",
     "jest-editor-support": "*",

@@ -1,17 +1,23 @@
-<h2>Que desea realizar</h2>
+<h2>{{ 'APP_TITLE' | translate }}</h2>
 
 <div class="button-container">
-  <button (click)="consultarBaseDatos()">Consultar</button>
-  <button (click)="comprobarArticulos()">Gestión de articulos</button>
-  <button (click)="listaCompra()">Lista</button>
-  <button (click)="cerrarSesion()">Cerrar Sesión</button>
-  <!-- <button (click)="volver()">Volver</button> -->
+  <button (click)="consultarBaseDatos()">{{ 'CONSULTAR' | translate }}</button>
+  <button (click)="comprobarArticulos()">{{ 'GESTION_ARTICULOS' | translate }}</button>
+  <button (click)="listaCompra()">{{ 'LISTA_COMPRA' | translate }}</button>
+  <button (click)="cerrarSesion()">{{ 'CERRAR_SESION' | translate }}</button>
 </div>
+
+<div class="language-selector">
+  <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'"> />
+  <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'"> />
+  <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'"> />
+</div>
+
 
 <!-- Spinner de carga -->
 <div *ngIf="loading" class="loading-container">
   <div class="spinner">
     <img src="assets/doge.jpg" alt="Doge" class="doge-icon">
   </div>
-  <p>Loading...</p>
+  <p>{{ 'LOADING' | translate }}</p>
 </div>

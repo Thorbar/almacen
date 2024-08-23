@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+
 
 @Component({
   selector: 'app-login',
@@ -8,6 +10,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.component.css'] // Asegúrate de que el archivo CSS esté importado aquí
 })
 export class LoginComponent {
+  selectedLanguage: string = 'es'; // Declara la propiedad aquí
   username: string = '';
   email: string = '';
   password: string = '';
@@ -17,8 +20,20 @@ export class LoginComponent {
 
 
   constructor(private auth: AngularFireAuth, 
-              private router: Router) {}
-
+              private router: Router,
+              private translate: TranslateService
+            ) {
+              const savedLanguage = localStorage.getItem('selectedLanguage');
+              this.selectedLanguage = savedLanguage || 'es';
+              this.translate.setDefaultLang(this.selectedLanguage);
+              this.translate.use(this.selectedLanguage);        
+            }
+  changeLanguage(lang: string) {
+    this.selectedLanguage = lang; // Actualiza el idioma seleccionado
+    this.translate.setDefaultLang(lang);
+    this.translate.use(lang);
+    localStorage.setItem('selectedLanguage', lang)
+  }
   login() {
     this.showWelcome = false;
     this.loading = true; // Muestra el spinner

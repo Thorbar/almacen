@@ -1,6 +1,6 @@
 <!-- Contenido cuando se tiene permiso para usar la cámara -->
 <div *ngIf="hasPermission">
-  <h2>Pantalla para Seco</h2>
+  <h2>{{ 'ITEM_MANAGEMENT' | translate }}</h2>
 
   <!-- Lector QR y de códigos de barras -->
   <zxing-scanner [device]="selectedDevice"
@@ -11,11 +11,16 @@
 
   <!-- Mostrar el resultado del código QR o de barras y la acción si se ha escaneado un código -->
   <div *ngIf="scannedResult && !action">
-    <p>Código escaneado: {{ scannedResult }}</p>
-    <p>¿Qué quieres hacer con el producto?</p>
-    <button (click)="startVoiceRecognition()">Habla ahora para dar una instrucción</button>
+    <p>{{ 'SCANNED_CODE' | translate }} {{ scannedResult }}</p>
+    <p>{{ 'PRODUCT_QUESTION' | translate }}</p>
+    <button (click)="startVoiceRecognition()">{{ 'START_VOICE_RECOG' | translate }}</button>
   </div>
 
+  <div class="language-selector">
+    <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'"> />
+    <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'"> />
+    <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'"> />
+  </div>
   <!-- Mostrar mensaje y barra de carga mientras se realiza una acción -->
   <!--<div *ngIf="action">
     <p>{{ action === 'agregar' ? 'Agregando producto...' : 'Retirando producto...' }}</p>
@@ -23,5 +28,5 @@
   </div> -->
 
   <!-- Botón para volver a la página principal -->
-  <button (click)="volver()">Volver</button>
+  <button (click)="volver()">{{ 'RETURN' | translate }}</button>
 </div>
