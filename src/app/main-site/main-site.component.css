@@ -25,6 +25,11 @@ button {
 .spinner {
   text-align: center;
 }
+/* Animación del spinner */
+@keyframes spin {
+  0% {    transform: rotate(0deg);  }
+  100% {    transform: rotate(360deg); }
+}
 
 .doge-icon {
   width: 100px; /* Tamaño del spinner */
@@ -33,7 +38,7 @@ button {
 .language-selector {
   position: absolute;
   top: 10px; /* Ajusta según sea necesario */
-  right: 20px; /* Ajusta según sea necesario */
+  right: 10px; /* Ajusta según sea necesario */
   display: flex;
   gap: 10px; /* Espacio entre las banderas */
 }
@@ -54,4 +59,17 @@ button {
 .language-selector img:hover {
   transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
   
+}
+/* Media query para dispositivos móviles */
+@media (max-width: 768px) {
+  .language-selector {
+    position: absolute;
+    top: 10px; /* Ajusta según sea necesario */
+    left: 260px;
+    width: 100%; /* Ajusta el tamaño al 20% */
+  }
+
+    .language-selector img {
+      width: 6%; /* Ajusta el tamaño para móviles */
+    }
 }

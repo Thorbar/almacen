@@ -38,7 +38,7 @@ export class LoginComponent {
     this.showWelcome = false;
     this.loading = true; // Muestra el spinner
     if(this.email = 'thorbar'){
-      this.email = 'davidribe86@gmail.com'
+      this.email = 'davidribe86@gmail.com';
     }
     this.auth.signInWithEmailAndPassword(this.email, this.password)
       .then(() => {
@@ -48,7 +48,8 @@ export class LoginComponent {
       .catch(err => {
         this.loading = false; // Oculta el spinner en caso de error
         alert('Login failed: ' + err.message);
-        this.router.navigate(['/home']);
+        this.router.navigate(['']);
+
       });
   }
 }

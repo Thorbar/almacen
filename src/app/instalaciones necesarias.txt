@@ -1,0 +1,9 @@
+npm install
+ng add @ngx-translate/core
+ng add @ngx-translate/http-loader
+ng add @angular/fire
+npm install -g firebase-tools
+npm install @zxing/ngx-scanner
+npm install @angular/fire@latest firebase
+
+

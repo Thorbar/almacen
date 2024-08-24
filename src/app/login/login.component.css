@@ -67,4 +67,15 @@
   .language-selector img:hover {
     transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
   }
-  
+/* Media query para dispositivos móviles */
+@media (max-width: 768px) {
+  .language-selector {
+    top: 10px; /* Ajusta según sea necesario */
+    left: 200px;
+    width: 100%; /* Ajusta el tamaño al 20% */
+  }
+
+    .language-selector img {
+      width: 6%; /* Ajusta el tamaño para móviles */
+    }
+}

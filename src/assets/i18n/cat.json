@@ -65,5 +65,9 @@
   "FRESH": "Fresc",
   "DRY": "Sec",
   "CLEAN": "Neteja",
-  "FROZEN": "Congelat"
+  "FROZEN": "Congelat",
+  "CONFIRM_LOGOUT": "Voleu tancar la sessió?",
+  "LOGOUT_ERROR": "Error en tancar la sessió: {{error}}",
+  "UNKNOWN_LOGOUT_ERROR": "Error en tancar la sessió: S'ha produït un error desconegut."
+
 }

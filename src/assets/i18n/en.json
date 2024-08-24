@@ -64,6 +64,9 @@
   "UNKNOWN_COMMAND": "Unrecognized command. Try saying 'add', 'withdraw', 'delete', 'change', or 'continue'.",
   "FRESH": "Fresh",
   "DRY": "Dry",
-  "CLEAN": "Cleam",
-  "FROZEN": "Frozen"
+  "CLEAN": "Clean",
+  "FROZEN": "Frozen",
+  "CONFIRM_LOGOUT": "Do you want to log out?",
+  "LOGOUT_ERROR": "Error logging out: {{error}}",
+  "UNKNOWN_LOGOUT_ERROR": "Error logging out: An unknown error occurred."
 }

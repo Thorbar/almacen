@@ -43,26 +43,25 @@ export class MainSiteComponent {
   }
 
   async cerrarSesion() {
-    // Muestra un cuadro de diálogo de confirmación
-    const confirmar = window.confirm('¿Desea cerrar sesión?');
+    // Obtiene el texto traducido
+    const confirmMessage = this.translate.instant('CONFIRM_LOGOUT');
+    const confirmButton = window.confirm(confirmMessage);
 
-    if (confirmar) {
-      this.loading = true; // Muestra el spinner
+    if (confirmButton) {
+      this.loading = true;
 
       try {
         await this.auth.signOut();
-        this.router.navigate(['/']);
+        this.router.navigate(['']);
       } catch (error) {
-        // Verifica si el error es una instancia de Error
-        if (error instanceof Error) {
-          alert('Error al cerrar sesión: ' + error.message);
-        } else {
-          alert('Error al cerrar sesión: Un error desconocido ocurrió.');
-        }
+        const errorMessage = error instanceof Error
+          ? this.translate.instant('LOGOUT_ERROR', { error: error.message })
+          : this.translate.instant('UNKNOWN_LOGOUT_ERROR');
+
+        alert(errorMessage);
       } finally {
-        this.loading = false; // Oculta el spinner
+        this.loading = false;
       }
     }
-    // Si el usuario cancela, no hacer nada
   }
 }

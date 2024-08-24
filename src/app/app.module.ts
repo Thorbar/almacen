@@ -49,11 +49,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AngularFireModule.initializeApp(environment.firebaseConfig),
     AngularFireAuthModule
   ],
-  providers: [
-    //provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
-    //provideFirestore(() => getFirestore()),
-    //provideAuth(() => getAuth())
-  ],
+  providers: [],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

@@ -22,7 +22,7 @@
   "PRODUCT_QUESTION": "¿Qué quieres hacer con el producto?",
   "START_VOICE_RECOG": "Habla ahora para dar una instrucción",
   "CATEGORY_PROMPT": "Diga la categoría en la que desea operar: Congelado, Fresco, Limpieza, Seco",
-  "CATEGORY_SELECTED": "Categoría seleccionada: {category}",  
+  "CATEGORY_SELECTED": "Categoría seleccionada: {category}",
   "CAMERA_ON": "Cámara activada. Ya puede escanear un código.",
   "NO_CAMERA": "No tiene permiso para acceder a la cámara",
   "QR_DETECTED": "Código QR detectado. ¿Desea agregar, retirar o eliminar el producto?",
@@ -65,5 +65,9 @@
   "FRESH": "Fresco",
   "DRY": "Seco",
   "CLEAN": "Limpieza",
-  "FROZEN": "Congelado"
+  "FROZEN": "Congelado",
+  "CONFIRM_LOGOUT": "¿Desea cerrar sesión?",
+  "LOGOUT_ERROR": "Error al cerrar sesión: {{error}}",
+  "UNKNOWN_LOGOUT_ERROR": "Error al cerrar sesión: Ocurrió un error desconocido."
+
 }
