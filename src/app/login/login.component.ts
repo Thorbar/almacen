@@ -19,15 +19,15 @@ export class LoginComponent {
 
 
 
-  constructor(private auth: AngularFireAuth, 
-              private router: Router,
-              private translate: TranslateService
-            ) {
-              const savedLanguage = localStorage.getItem('selectedLanguage');
-              this.selectedLanguage = savedLanguage || 'es';
-              this.translate.setDefaultLang(this.selectedLanguage);
-              this.translate.use(this.selectedLanguage);        
-            }
+  constructor(private auth: AngularFireAuth,
+    private router: Router,
+    private translate: TranslateService
+  ) {
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    this.selectedLanguage = savedLanguage || 'es';
+    this.translate.setDefaultLang(this.selectedLanguage);
+    this.translate.use(this.selectedLanguage);
+  }
   changeLanguage(lang: string) {
     this.selectedLanguage = lang; // Actualiza el idioma seleccionado
     this.translate.setDefaultLang(lang);
@@ -37,7 +37,7 @@ export class LoginComponent {
   login() {
     this.showWelcome = false;
     this.loading = true; // Muestra el spinner
-    if(this.email = 'thorbar'){
+    if (this.email = 'thorbar') {
       this.email = 'davidribe86@gmail.com';
     }
     this.auth.signInWithEmailAndPassword(this.email, this.password)

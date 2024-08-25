@@ -9,6 +9,7 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class AppComponent {
   showWelcome = true;
+  title: any;
 
   constructor(
     private router: Router,
@@ -16,10 +17,5 @@ export class AppComponent {
   ) {
     this.translate.setDefaultLang('es');
    }
-/*
-  irAlSupermercado() {
-    this.showWelcome = false;
-    this.router.navigate(['/main-site']);
-  }*/
 }
 

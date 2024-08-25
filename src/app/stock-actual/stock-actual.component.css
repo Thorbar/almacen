@@ -6,34 +6,61 @@ button {
   margin: 5px;
   padding: 10px 20px;
   font-size: 16px;
+  border-radius: 12px; /* Botones más redondeados */
+  border: 1px solid #00897b; /* Borde del botón */
+  color: #004d40; /* Color del texto del botón */
+  transition: background-color 0.3s ease;
 }
 
+  button:hover {
+    background-color: #00897b; /* Fondo más oscuro al pasar el ratón */
+    color: #ffffff; /* Texto en blanco al pasar el ratón */
+  }
+
 /* Estilo general de la tabla */
-.stock-table {
-  width: 50%;
+.stock-table, .shopping-list-table {
+  width: 100%; /* Ancho completo de la tabla */
   border-collapse: collapse;
   margin: 20px 0;
 }
 
-.stock-table th,
-.stock-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-  text-align: left;
-}
+  .stock-table th,
+  .stock-table td,
+  .shopping-list-table th,
+  .shopping-list-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
 
-.stock-table th {
-  background-color: #f2f2f2;
+  .stock-table th,
+  .shopping-list-table th {
+    background-color: #4CAF50; /* Verde para el fondo de la cabecera */
+    color: white; /* Texto en blanco para la cabecera */
+    font-weight: bold;
+  }
+
+  .stock-table td,
+  .shopping-list-table td {
+    background-color: #f5f5dc; /* Blanco marfil para las celdas */
+  }
+
+  .stock-table tr:nth-child(even) td,
+  .shopping-list-table tr:nth-child(even) td {
+    background-color: #f5f5dc; /* Blanco marfil también para las filas pares */
+  }
+
+  .stock-table tr:hover td,
+  .shopping-list-table tr:hover td {
+    background-color: #b2dfdb; /* Fondo más oscuro al pasar el ratón por encima */
+  }
+
+/* Clase para destacar artículos con stock 0 */
+.out-of-stock {
+  color: red;
   font-weight: bold;
 }
 
-.stock-table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.stock-table tr:hover {
-  background-color: #ddd;
-}
 .language-selector {
   position: absolute;
   top: 10px; /* Ajusta según sea necesario */
@@ -42,22 +69,32 @@ button {
   gap: 10px; /* Espacio entre las banderas */
 }
 
-.language-selector img {
-  width: 5%; /* Ajusta el tamaño al 20% */
-  height: auto;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: transform 0.3s ease;
+  .language-selector img {
+    width: 5%; /* Ajusta el tamaño al 20% */
+    height: auto;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: transform 0.3s ease;
+  }
+
+    .language-selector img.selected {
+      opacity: 1;
+      transform: scale(1.1);
+      border: 1px solid #007bff;
+      border-radius: 50%;
+    }
+
+    .language-selector img:hover {
+      transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
+    }
+
+/* Fondo del componente a azul celeste suave */
+:host {
+  display: block;
+  background-color: #e0f7fa; /* Azul celeste suave */
+  padding: 20px; /* Opcional: Añade un poco de padding */
 }
-.language-selector img.selected {
-  opacity: 1;
-  transform: scale(1.1);
-  border: 2px solid #007bff;
-  border-radius: 50%;
-}
-.language-selector img:hover {
-  transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
-}
+
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
   .language-selector {

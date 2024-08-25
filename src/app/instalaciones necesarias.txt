@@ -7,3 +7,4 @@ npm install @zxing/ngx-scanner
 npm install @angular/fire@latest firebase
 
 
+ng generate service services/product

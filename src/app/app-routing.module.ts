@@ -9,15 +9,11 @@ import { LoginComponent } from './login/login.component';
 
 
 const routes: Routes = [
-  //{ path: '', redirectTo: '/', pathMatch: 'full' }, // Redirige la raíz a '/home'
-  { path: 'home', component: AppComponent },
+  { path: '', component: LoginComponent }, // Raíz
   { path: 'main-site', component: MainSiteComponent },
   { path: 'articulos', component: ArticulosComponent },
   { path: 'stock-actual', component: StockActualComponent },
-  { path: 'lista', component: ListaCompraComponent },
-  { path: '', component: LoginComponent }
-
-
+  { path: 'lista', component: ListaCompraComponent }
 ];
 
 @NgModule({

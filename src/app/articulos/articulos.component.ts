@@ -6,6 +6,8 @@ import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
+import { ProductService } from '../services/product.service';  // Importa el servicio
+
 
 
 export interface Producto {
@@ -42,13 +44,15 @@ export class ArticulosComponent implements OnInit {
   isProcessing: boolean = false;
   isAddingProduct: boolean = false;
   selectedLanguage: string = 'es'; // Declara la propiedad aquí
-
+  nuevoProducto: any;
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private firestore: AngularFirestore,
-    private translate: TranslateService // Asegúrate de que este nombre coincida
+    private translate: TranslateService, // Asegúrate de que este nombre coincida
+    private productService: ProductService  // Inyecta el servicio aquí
+
 
   ) {
     const savedLanguage = localStorage.getItem('selectedLanguage') || 'es';
@@ -79,16 +83,25 @@ export class ArticulosComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Verificar permiso de la cámara
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(() => {
-          this.hasPermission = true;
-        })
-        .catch(() => {
-          this.hasPermission = false;
-        });
-    }
+    console.log('Component initialized');
+
+    // Introducir un temporizador de 5 segundos, es un parche para que tarde mas en abrir la camara.
+    setTimeout(() => {
+      // Verificar permiso de la cámara
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(() => {
+            this.hasPermission = true;
+            console.log('Permiso de cámara concedido');
+          })
+          .catch(() => {
+            this.hasPermission = false;
+            console.log('Permiso de cámara denegado');
+          });
+      } else {
+        console.log('getUserMedia no está disponible en este navegador.');
+      }
+    }, 5000); // 5000 milisegundos = 5 segundos
 
     // Configuración del reconocimiento de voz
     this.setupVoiceRecognition();
@@ -130,6 +143,8 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
+
+
   handleVoiceCommand(command: string) {
     const categorias = ['congelado', 'fresco', 'limpieza', 'seco'];
     if (categorias.includes(command)) {
@@ -160,6 +175,8 @@ export class ArticulosComponent implements OnInit {
     this.stopVoiceRecognition();
   }
 
+
+
   stopVoiceRecognition() {
     if (this.recognition) {
       this.recognition.stop();
@@ -167,20 +184,22 @@ export class ArticulosComponent implements OnInit {
   }
 
   activateCamera() {
-    // Verificar permiso de la cámara y activarla
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(() => {
-          this.hasPermission = true;
-          alert('Cámara activada. Escanee un código.');
-        })
-        .catch(() => {
-          this.hasPermission = false;
-          alert('Permiso para acceder a la cámara no concedido.');
-        });
-    }
+    console.log('print');
+    // Solo activa la cámara si la categoría ya ha sido seleccionada
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(() => {
+            this.hasPermission = true;
+            alert('Cámara activada. Escanee un código.');
+          })
+          .catch(() => {
+            this.hasPermission = false;
+            alert('Permiso para acceder a la cámara no concedido.');
+          });
+      }
   }
 
+ 
   onCodeResult(result: string) {
     if (!this.isProcessing) {
       this.isProcessing = true;
@@ -220,7 +239,34 @@ export class ArticulosComponent implements OnInit {
         .subscribe((productos: (Producto & { docId: string })[]) => {
           if (productos.length === 0) {
             this.isAddingProduct = true;
-            this.promptForNewProductDetails();
+            // Aquí se realiza la solicitud a la API si no existe el producto en la base de datos local
+            this.productService.getProductByBarcode(this.scannedResult!)
+              .subscribe(response => {
+                if (response && response.product) {
+                  const productoDeApi = response.product;
+                  console.log(productoDeApi);  // Inspecciona el objeto producto
+                  const descripcion = productoDeApi.product_name || 'Descripción no disponible';
+                  const establecimiento = productoDeApi.stores || 'Establecimiento no disponible';
+                  const precio = productoDeApi.price_value || productoDeApi.unit_price || 0; // Si la API proporciona el precio
+
+                  const nuevoProducto: Producto = {
+                    descripcion,
+                    establecimiento,
+                    precio,
+                    cantidadStock: 0,  // Se actualiza después de que el usuario ingrese la cantidad comprada
+                    codigo: this.scannedResult!,
+                    id: Date.now(),
+                    fechaCreacion: new Date()
+                  };
+
+                  // Ahora pide la cantidad comprada al usuario
+                  this.promptForQuantity(nuevoProducto);
+
+                } else {
+                  // Si no se encuentra en la API, solicita los detalles manualmente
+                  this.promptForNewProductDetails();
+                }
+              });
           } else if (productos.length > 0) {
             const producto = productos[0];
             alert('Producto existente');
@@ -303,39 +349,70 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
-  promptForQuantity(producto: Producto & { docId: string }) {
-    const cantidad = prompt('Ingrese la cantidad a agregar:', '1');
-    if (cantidad) {
-      const cantidadNumerica = parseInt(cantidad, 10);
-      if (cantidadNumerica === 0) {
-        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
-        if (cancelar) {
-          this.cancelarOperacion();
-          return;
+  promptForQuantity(producto: Producto & { docId?: string }) {
+    const precioAnterior = producto.precio;
+    const nuevoPrecio = prompt('Confirma el precio para ${ producto.descripcion }(anterior: ${ precioAnterior }€), precioAnterior.toString()');
+
+    if (nuevoPrecio !== null && !isNaN(parseFloat(nuevoPrecio))) {
+      const cantidad = prompt('Ingrese la cantidad comprada:', '1');
+
+      if (cantidad !== null) {
+        const cantidadNumerica = parseInt(cantidad, 10);
+
+        if (cantidadNumerica === 0) {
+          const cancelar = confirm('La cantidad es 0. ¿Deseas cancelar la operación?');
+          if (cancelar) {
+            this.cancelarOperacion();
+            return;  // Sale sin modificar nada
+          }
+        } else if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
+          if (producto.docId) {
+            // Actualiza el producto existente
+            const fechaUltimaCompra = new Date();
+            this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
+              .update({
+                cantidadStock: producto.cantidadStock + cantidadNumerica,
+                precio: parseFloat(nuevoPrecio),  // Actualiza el precio con el nuevo valor
+                fechaUltimaCompra
+              })
+              .then(() => {
+                alert('Producto actualizado con el nuevo precio y cantidad.');
+                this.scannedResult = null;
+                this.isProcessing = false;
+                this.preguntarCambioDeBaseDatos();
+              })
+              .catch(error => {
+                console.error('Error al actualizar producto: ', error);
+                this.isProcessing = false;
+              });
+          } else {
+            // Crea un nuevo producto con la cantidad comprada
+            producto.cantidadStock = cantidadNumerica;
+            producto.precio = parseFloat(nuevoPrecio);
+            this.firestore.collection(this.categoriaSeleccionada!)
+              .add(producto)
+              .then(() => {
+                alert('Producto agregado con el nuevo precio y cantidad.');
+                this.scannedResult = null;
+                this.isProcessing = false;
+                this.preguntarCambioDeBaseDatos();
+              })
+              .catch(error => {
+                console.error('Error al agregar producto: ', error);
+                this.isProcessing = false;
+              });
+          }
+        } else {
+          alert('Cantidad no válida.');
+          this.isProcessing = false;
         }
-      }
-      if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
-        const fechaUltimaCompra = new Date(); // Se registra la fecha de la última compra
-        this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
-          .update({
-            cantidadStock: producto.cantidadStock + cantidadNumerica,
-            fechaUltimaCompra: fechaUltimaCompra  // Se actualiza la fecha de la última compra
-          })
-          .then(() => {
-            alert('Cantidad actualizada');
-            this.scannedResult = null;
-            this.isProcessing = false;
-            this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
-          })
-          .catch(error => {
-            console.error('Error al actualizar cantidad: ', error);
-            this.isProcessing = false;
-          });
       } else {
-        alert('Cantidad no válida.');
+        // El usuario canceló la entrada de cantidad
+        alert('Operación cancelada.');
         this.isProcessing = false;
       }
     } else {
+      // El usuario canceló la entrada de precio o ingresó un valor no válido
       alert('Operación cancelada.');
       this.isProcessing = false;
     }
@@ -355,7 +432,8 @@ export class ArticulosComponent implements OnInit {
         descripcion = null;
       } else if (!soloLetras(descripcion)) {
         alert('La descripción solo puede contener letras. Por favor, inténtelo nuevamente.');
-        descripcion = null;      }
+        descripcion = null;
+      }
     }
 
     // Solicitar establecimiento hasta que se ingrese un valor válido
@@ -503,6 +581,6 @@ export class ArticulosComponent implements OnInit {
   }
 
   continuarEnBaseDatos() {
-    alert(`Continuando en la base de datos actual: ${this.categoriaSeleccionada}`);
+    alert('Continuando en la base de datos actual: ${ this.categoriaSeleccionada }');
   }
 }

@@ -21,12 +21,15 @@
     <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'"> />
     <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'"> />
   </div>
+
+  <video #videoElement autoplay></video>
+
+
   <!-- Mostrar mensaje y barra de carga mientras se realiza una acción -->
   <!--<div *ngIf="action">
     <p>{{ action === 'agregar' ? 'Agregando producto...' : 'Retirando producto...' }}</p>
     <progress value="50" max="100"></progress>
   </div> -->
-
   <!-- Botón para volver a la página principal -->
   <button (click)="volver()">{{ 'RETURN' | translate }}</button>
 </div>

@@ -1,56 +1,110 @@
+/* Estilos para el campo de texto del usuario */
+input[type="text"] {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 12px; /* Bordes redondeados */
+  border: 1px solid #00897b; /* Borde del campo de texto */
+  background-color: #f5f5dc; /* Fondo blanco marfil */
+  color: #004d40; /* Color del texto */
+  width: 150px; /* La mitad del tamaño de la contraseña */
+  box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
+/* Estilos para el campo de texto de la contraseña */
+input[type="password"] {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 12px; /* Bordes redondeados */
+  border: 1px solid #00897b; /* Borde del campo de texto */
+  background-color: #f5f5dc; /* Fondo blanco marfil */
+  color: #004d40; /* Color del texto */
+  width: 300px; /* Tamaño completo */
+  box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+}
+
+  /* Estilo al hacer hover sobre los campos de texto */
+  input[type="text"]:hover,
+  input[type="password"]:hover {
+    border-color: #004d40; /* Cambia el color del borde al hacer hover */
+  }
+
+/* Estilos del botón */
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 12px; /* Botones más redondeados */
+  border: 1px solid #00897b; /* Borde del botón */
+  color: #004d40; /* Color del texto del botón */
+  transition: background-color 0.3s ease;
+}
+
+  button:hover {
+    background-color: #00897b; /* Fondo más oscuro al pasar el ratón */
+    color: #ffffff; /* Texto en blanco al pasar el ratón */
+  }
+
 /* Contenedor del spinner */
 .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh; /* Ocupa toda la altura de la ventana */
-    position: absolute; /* Para que el contenedor de carga esté encima del contenido */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
-    z-index: 1000; /* Asegúrate de que esté encima del contenido */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Ocupa toda la altura de la ventana */
+  position: absolute; /* Para que el contenedor de carga esté encima del contenido */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
+  z-index: 1000; /* Asegúrate de que esté encima del contenido */
+}
+
+/* Estilos del spinner */
+.spinner {
+  border: 8px solid #f3f3f3; /* Color de fondo del spinner */
+  border-top: 8px solid #3498db; /* Color de la parte superior del spinner */
+  border-radius: 50%;
+  width: 50px; /* Ajusta el tamaño del spinner */
+  height: 50px; /* Ajusta el tamaño del spinner */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Necesario para posicionar el ícono */
+  animation: spin 1s linear infinite;
+}
+
+/* Estilos del ícono dentro del spinner */
+.doge-icon {
+  width: 50px; /* Ajusta el tamaño del ícono */
+  height: 50px; /* Ajusta el tamaño del ícono */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centra el ícono */
+}
+
+/* Animación del spinner */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  /* Estilos del spinner */
-  .spinner {
-    border: 8px solid #f3f3f3; /* Color de fondo del spinner */
-    border-top: 8px solid #3498db; /* Color de la parte superior del spinner */
-    border-radius: 50%;
-    width: 50px; /* Ajusta el tamaño del spinner */
-    height: 50px; /* Ajusta el tamaño del spinner */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative; /* Necesario para posicionar el ícono */
-    animation: spin 1s linear infinite;
+
+  100% {
+    transform: rotate(360deg);
   }
-  
-  /* Estilos del ícono dentro del spinner */
-  .doge-icon {
-    width: 50px; /* Ajusta el tamaño del ícono */
-    height: 50px; /* Ajusta el tamaño del ícono */
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* Centra el ícono */
-  }
-  
-  /* Animación del spinner */
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  .language-selector {
-    position: absolute;
-    top: 10px; /* Ajusta según sea necesario */
-    right: 10px; /* Ajusta según sea necesario */
-    display: flex;
-    gap: 10px; /* Espacio entre las banderas */
-  }
-  
+}
+
+.language-selector {
+  position: absolute;
+  top: 10px; /* Ajusta según sea necesario */
+  right: 10px; /* Ajusta según sea necesario */
+  display: flex;
+  gap: 10px; /* Espacio entre las banderas */
+}
+
   .language-selector img {
     width: 5%; /* Ajusta el tamaño al 20% */
     height: auto;
@@ -58,15 +112,17 @@
     opacity: 0.5;
     transition: transform 0.3s ease;
   }
-  .language-selector img.selected {
-    opacity: 1;
-    transform: scale(1.1);
-    border: 2px solid #007bff;
-    border-radius: 50%;
-  }
-  .language-selector img:hover {
-    transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
-  }
+
+    .language-selector img.selected {
+      opacity: 1;
+      transform: scale(1.1);
+      border: 2px solid #007bff;
+      border-radius: 50%;
+    }
+
+    .language-selector img:hover {
+      transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
+    }
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
   .language-selector {

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Producto } from '../articulos/articulos.component'; // Importa la interfaz Producto
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
+import { orderBy } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-stock-actual',
@@ -38,13 +39,18 @@ export class StockActualComponent implements OnInit {
   changeCollection(collection: string) {
     this.selectedCollection = collection;
     this.productos$ = this.firestore.collection<Producto>(collection).valueChanges();
+    /*    this.productos$ = this.firestore.collection<Producto>(collection, ref =>
+      ref.orderBy('establecimiento').orderBy('descripcion')
+    ).valueChanges();
+*/
   }
 
   ngOnInit() {
     // Inicializar con la colección predeterminada
-    this.productos$ = this.firestore.collection<Producto>(this.selectedCollection).valueChanges();
+    this.productos$ = this.firestore.collection<Producto>(this.selectedCollection, ref =>
+      ref.orderBy('establecimiento')//.orderBy('descripcion')
+    ).valueChanges();
   }
-
   volver() {
     this.router.navigate(['/main-site']);
   }

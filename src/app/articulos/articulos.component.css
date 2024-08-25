@@ -6,7 +6,18 @@ button {
   margin: 5px;
   padding: 10px 20px;
   font-size: 16px;
+  border-radius: 12px; /* Botones más redondeados */
+  border: 1px solid #00897b; /* Borde del botón */
+  color: #004d40; /* Color del texto del botón */
+  transition: background-color 0.3s ease;
+  font-size: 16px;
 }
+
+  button:hover {
+    background-color: #00897b; /* Fondo más oscuro al pasar el ratón */
+    color: #ffffff; /* Texto en blanco al pasar el ratón */
+  }
+
 .language-selector {
   position: absolute;
   top: 10px; /* Ajusta según sea necesario */
