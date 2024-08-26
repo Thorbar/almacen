@@ -68,5 +68,15 @@
   "FROZEN": "Frozen",
   "CONFIRM_LOGOUT": "Do you want to log out?",
   "LOGOUT_ERROR": "Error logging out: {{error}}",
-  "UNKNOWN_LOGOUT_ERROR": "Error logging out: An unknown error occurred."
+  "UNKNOWN_LOGOUT_ERROR": "Error logging out: An unknown error occurred.",
+  "LOGIN_ERROR": "Incorrect username or password. Please try again.",
+  "USER_NOT_FOUND": "Incorrect username. Please check your username.",
+  "WRONG_PASSWORD": "Incorrect password. Please check your password.",
+  "LOGIN_FAILED": "Login Failed",
+  "TRY_AGAIN": "Try Again",
+  "LOGIN_FAILED_MESSAGE": "Username or password is incorrect. Please check your details and try again.",
+  "ACCOUNT_LOCKED": "Account Locked",
+  "RETRY_AFTER": "Retry after",
+  "MINUTES": "minutes"
+
 }

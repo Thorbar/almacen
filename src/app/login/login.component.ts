@@ -4,31 +4,37 @@ import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { ChangeDetectorRef } from '@angular/core';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'] // Asegúrate de que el archivo CSS esté importado aquí
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  selectedLanguage: string = 'es'; // Declara la propiedad aquí
+  selectedLanguage: string = 'es';
   username: string = '';
   email: string = '';
   password: string = '';
   showWelcome = true;
-  loading = false; // Añadido para manejar el estado de carga
+  loading = false;
+  failedAttempts = 0; // Número de intentos fallidos
+  lockoutEndTime: number | null = null; // Tiempo de fin de bloqueo
 
   constructor(
     private auth: AngularFireAuth,
     private router: Router,
     private translate: TranslateService,
-    private cdRef: ChangeDetectorRef // Importa ChangeDetectorRef
-
+    private cdRef: ChangeDetectorRef
   ) {
     const savedLanguage = localStorage.getItem('selectedLanguage');
     this.selectedLanguage = savedLanguage || 'es';
     this.translate.setDefaultLang(this.selectedLanguage);
     this.translate.use(this.selectedLanguage);
+
+    // Cargar el estado de bloqueo desde localStorage
+    const savedLockoutEndTime = localStorage.getItem('lockoutEndTime');
+    this.lockoutEndTime = savedLockoutEndTime ? parseInt(savedLockoutEndTime, 10) : null;
   }
 
   ngOnInit() {
@@ -37,42 +43,87 @@ export class LoginComponent {
   }
 
   changeLanguage(lang: string) {
-    this.selectedLanguage = lang; // Actualiza el idioma seleccionado
+    this.selectedLanguage = lang;
     this.translate.setDefaultLang(lang);
     this.translate.use(lang);
     localStorage.setItem('selectedLanguage', lang)
   }
 
   login() {
+    if (this.isLockedOut()) {
+      const remainingTime = Math.ceil((this.lockoutEndTime! - Date.now()) / 60000);
+      Swal.fire({
+        title: this.translate.instant('ACCOUNT_LOCKED'),
+        text: `${this.translate.instant('RETRY_AFTER')} ${remainingTime} ${this.translate.instant('MINUTES')}`,
+        icon: 'warning',
+        confirmButtonText: this.translate.instant('OK')
+      });
+      return;
+    }
+
     this.showWelcome = false;
-    this.loading = true; // Muestra el spinner
+    this.loading = true;
 
     if (this.username === 'thorbar') {
       this.email = 'davidribe86@gmail.com';
     }
 
-    // Asegúrate de que `getAuth()` esté inicializado correctamente
     const auth = getAuth();
 
     signInWithEmailAndPassword(auth, this.email, this.password)
       .then((userCredential) => {
-        // El inicio de sesión fue exitoso, maneja la navegación o el estado aquí
-        console.log("Inicio de sesión exitoso:", userCredential);
-        this.router.navigate(['/main-site']); // Redirige a la página de inicio
+        console.log("Login successful:", userCredential);
+        this.router.navigate(['/main-site']);
+        this.resetFailedAttempts(); // Resetea el conteo de intentos fallidos en caso de éxito
       })
       .catch((error) => {
-        // Manejo de errores
-        console.error("Error de inicio de sesión:", error.message);
-        // Muestra un mensaje de error al usuario sin detener la aplicación
-        alert("Usuario o contraseña incorrectos. Por favor, intenta nuevamente.");
-        // Forzar la actualización de la vista
+        this.failedAttempts += 1;
+
+        let errorMessage = '';
+        if (error.code === 'auth/user-not-found') {
+          errorMessage = this.translate.instant('USER_NOT_FOUND');
+        } else if (error.code === 'auth/wrong-password') {
+          errorMessage = this.translate.instant('WRONG_PASSWORD');
+        } else {
+          errorMessage = this.translate.instant('LOGIN_FAILED_MESSAGE');
+        }
+
+        if (this.failedAttempts >= 3) {
+          this.startLockout();
+        }
+
+        Swal.fire({
+          title: this.translate.instant('LOGIN_FAILED'),
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: this.translate.instant('TRY_AGAIN')
+        });
+
         this.showWelcome = true;
-        this.cdRef.detectChanges(); // Añade esto para asegurar la actualización
+        this.loading = false;
+        this.cdRef.detectChanges();
       })
       .finally(() => {
-        this.loading = false; // Oculta el spinner independientemente del resultado
-        this.cdRef.detectChanges(); // Forzar la actualización después de cualquier cambio
-
+        this.loading = false;
+        this.cdRef.detectChanges();
       });
+  }
+
+  isLockedOut(): boolean {
+    if (this.lockoutEndTime && Date.now() < this.lockoutEndTime) {
+      return true;
+    }
+    return false;
+  }
+
+  startLockout() {
+    this.lockoutEndTime = Date.now() + 10 * 60 * 1000; // Bloquear por 10 minutos
+    localStorage.setItem('lockoutEndTime', this.lockoutEndTime.toString());
+  }
+
+  resetFailedAttempts() {
+    this.failedAttempts = 0;
+    this.lockoutEndTime = null;
+    localStorage.removeItem('lockoutEndTime');
   }
 }

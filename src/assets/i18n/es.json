@@ -68,6 +68,16 @@
   "FROZEN": "Congelado",
   "CONFIRM_LOGOUT": "¿Desea cerrar sesión?",
   "LOGOUT_ERROR": "Error al cerrar sesión: {{error}}",
-  "UNKNOWN_LOGOUT_ERROR": "Error al cerrar sesión: Ocurrió un error desconocido."
+  "UNKNOWN_LOGOUT_ERROR": "Error al cerrar sesión: Ocurrió un error desconocido.",
+  "LOGIN_ERROR": "Usuario o contraseña incorrectos. Por favor, intenta nuevamente.",
+  "USER_NOT_FOUND": "Usuario incorrecto. Por favor, verifica tu nombre de usuario.",
+  "WRONG_PASSWORD": "Contraseña incorrecta. Por favor, verifica tu contraseña.",
+  "LOGIN_FAILED": "Error de inicio de sesión",
+  "TRY_AGAIN": "Intentar de nuevo",
+  "LOGIN_FAILED_MESSAGE": "El nombre de usuario o la contraseña son incorrectos. Por favor, revisa tus datos e intenta nuevamente.",
+  "ACCOUNT_LOCKED": "Cuenta bloqueada",
+  "RETRY_AFTER": "Intenta de nuevo después de",
+  "MINUTES": "minutos"
+
 
 }

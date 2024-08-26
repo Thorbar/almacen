@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { TranslateService } from '@ngx-translate/core';
+import Swal from 'sweetalert2';
 
 
 
@@ -45,9 +46,18 @@ export class MainSiteComponent {
   async cerrarSesion() {
     // Obtiene el texto traducido
     const confirmMessage = this.translate.instant('CONFIRM_LOGOUT');
-    const confirmButton = window.confirm(confirmMessage);
+    const confirmButtonText = this.translate.instant('YES');
+    const cancelButtonText = this.translate.instant('NO');
 
-    if (confirmButton) {
+    const result = await Swal.fire({
+      title: confirmMessage,
+      showCancelButton: true,
+      confirmButtonText: confirmButtonText,
+      cancelButtonText: cancelButtonText,
+      icon: 'warning'
+    });
+
+    if (result.isConfirmed) {
       this.loading = true;
 
       try {
@@ -58,7 +68,7 @@ export class MainSiteComponent {
           ? this.translate.instant('LOGOUT_ERROR', { error: error.message })
           : this.translate.instant('UNKNOWN_LOGOUT_ERROR');
 
-        alert(errorMessage);
+        Swal.fire('Error', errorMessage, 'error');
       } finally {
         this.loading = false;
       }

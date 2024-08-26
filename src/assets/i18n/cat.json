@@ -68,6 +68,16 @@
   "FROZEN": "Congelat",
   "CONFIRM_LOGOUT": "Voleu tancar la sessió?",
   "LOGOUT_ERROR": "Error en tancar la sessió: {{error}}",
-  "UNKNOWN_LOGOUT_ERROR": "Error en tancar la sessió: S'ha produït un error desconegut."
+  "UNKNOWN_LOGOUT_ERROR": "Error en tancar la sessió: S'ha produït un error desconegut.",
+  "LOGIN_ERROR": "Usuari o contrasenya incorrectes. Si us plau, intenta-ho de nou.",
+  "USER_NOT_FOUND": "Usuari incorrecte. Si us plau, verifica el teu nom d'usuari.",
+  "WRONG_PASSWORD": "Contrasenya incorrecta. Si us plau, verifica la teva contrasenya.",
+  "LOGIN_FAILED": "Error d'inici de sessió",
+  "TRY_AGAIN": "Torna a intentar",
+  "LOGIN_FAILED_MESSAGE": "El nom d'usuari o la contrasenya són incorrectes. Si us plau, revisa les teves dades i intenta-ho de nou.",
+  "ACCOUNT_LOCKED": "Compte bloquejat",
+  "RETRY_AFTER": "Torna-ho a intentar després de",
+  "MINUTES": "minuts"
+
 
 }

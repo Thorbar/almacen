@@ -11,6 +11,7 @@ import Swal from 'sweetalert2';
 
 
 
+
 export interface Producto {
   cantidadStock: number;
   codigo: string;
@@ -201,7 +202,7 @@ export class ArticulosComponent implements OnInit {
         showConfirmButton: false
       });
       this.router.navigate(['/main-site']);
-    } 
+    }
     this.stopVoiceRecognition();
   }
 
@@ -233,7 +234,7 @@ export class ArticulosComponent implements OnInit {
         .catch(() => {
           this.hasPermission = false;
           Swal.fire({
-            title: 'Permiso para acceder a la cámara no concedido.',            
+            title: 'Permiso para acceder a la cámara no concedido.',
             timer: 2000,
             timerProgressBar: true,
             showConfirmButton: false
