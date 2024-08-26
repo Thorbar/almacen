@@ -99,8 +99,8 @@ button {
 
 .language-selector {
   position: absolute;
-  top: 10px; /* Ajusta según sea necesario */
-  right: 10px; /* Ajusta según sea necesario */
+  top: 25px; /* Ajusta según sea necesario */
+  left: 500px;
   display: flex;
   gap: 10px; /* Espacio entre las banderas */
 }
@@ -126,7 +126,7 @@ button {
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
   .language-selector {
-    top: 10px; /* Ajusta según sea necesario */
+    top: 25px; /* Ajusta según sea necesario */
     left: 200px;
     width: 100%; /* Ajusta el tamaño al 20% */
   }

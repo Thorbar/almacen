@@ -5,6 +5,8 @@ import { Producto } from '../articulos/articulos.component'; // Importa la inter
 import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { orderBy } from '@angular/fire/firestore';
+import firebase from 'firebase/compat/app';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-stock-actual',
@@ -26,6 +28,13 @@ export class StockActualComponent implements OnInit {
     this.translate.setDefaultLang(this.selectedLanguage);
     this.translate.use(this.selectedLanguage);
   }
+  ngOnInit() {
+    this.changeCollection(this.selectedCollection); // Inicializar con la colección predeterminada
+  }
+
+  volver() {
+    this.router.navigate(['/main-site']);
+  }
 
   // Función para cambiar el idioma
   changeLanguage(lang: string) {
@@ -35,23 +44,28 @@ export class StockActualComponent implements OnInit {
     localStorage.setItem('selectedLanguage', lang);
   }
 
-  // Función para cambiar la colección
   changeCollection(collection: string) {
     this.selectedCollection = collection;
-    this.productos$ = this.firestore.collection<Producto>(collection).valueChanges();
-    /*    this.productos$ = this.firestore.collection<Producto>(collection, ref =>
-      ref.orderBy('establecimiento').orderBy('descripcion')
-    ).valueChanges();
-*/
-  }
+    this.productos$ = this.firestore.collection<Producto>(collection, ref =>
+      ref.orderBy('establecimiento').orderBy('descripcion') // Ordena por 'establecimiento' y luego por 'descripcion'
+    ).valueChanges().pipe(
+      map(productos =>
+        productos.map(producto => {
+          const fechaCreacion = producto.fechaCreacion instanceof firebase.firestore.Timestamp
+            ? producto.fechaCreacion.toDate()
+            : producto.fechaCreacion;
 
-  ngOnInit() {
-    // Inicializar con la colección predeterminada
-    this.productos$ = this.firestore.collection<Producto>(this.selectedCollection, ref =>
-      ref.orderBy('establecimiento')//.orderBy('descripcion')
-    ).valueChanges();
-  }
-  volver() {
-    this.router.navigate(['/main-site']);
+          const fechaUltimaCompra = producto.fechaUltimaCompra instanceof firebase.firestore.Timestamp
+            ? producto.fechaUltimaCompra.toDate()
+            : producto.fechaUltimaCompra;
+
+          return {
+            ...producto,
+            fechaCreacion,
+            fechaUltimaCompra
+          };
+        })
+      )
+    );
   }
 }

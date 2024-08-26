@@ -245,8 +245,8 @@ export class ArticulosComponent implements OnInit {
                 if (response && response.product) {
                   const productoDeApi = response.product;
                   console.log(productoDeApi);  // Inspecciona el objeto producto
-                  const descripcion = productoDeApi.product_name || 'Descripción no disponible';
-                  const establecimiento = productoDeApi.stores || 'Establecimiento no disponible';
+                  const descripcion = productoDeApi.product_name || '';
+                  const establecimiento = productoDeApi.stores || '';
                   const precio = productoDeApi.price_value || productoDeApi.unit_price || 0; // Si la API proporciona el precio
 
                   const nuevoProducto: Producto = {
@@ -259,13 +259,17 @@ export class ArticulosComponent implements OnInit {
                     fechaCreacion: new Date()
                   };
 
-                  // Ahora pide la cantidad comprada al usuario
-                  this.promptForQuantity(nuevoProducto);
-
+                // Si la descripción y el establecimiento están vacíos, solicita los detalles manualmente
+                if (!descripcion || !establecimiento) {
+                  this.promptForNewProductDetails(nuevoProducto);
                 } else {
-                  // Si no se encuentra en la API, solicita los detalles manualmente
-                  this.promptForNewProductDetails();
+                  // Si la descripción y el establecimiento están completos, solicita la cantidad
+                  this.promptForQuantity(nuevoProducto);
                 }
+              } else {
+                // Si no se encuentra en la API, solicita los detalles manualmente
+                this.promptForNewProductDetails();
+              }
               });
           } else if (productos.length > 0) {
             const producto = productos[0];
@@ -418,9 +422,19 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
-  promptForNewProductDetails() {
+  promptForNewProductDetails(existingProduct?: Producto) {
     function soloLetras(cadena: string): boolean {
-      return /^[a-zA-Z\s]+$/.test(cadena);
+        // Expresión regular para permitir letras con acentos, caracteres especiales, y espacios
+        const letrasConAcentosYEspeciales = /^[\p{L}\s!@#$%^&*()_+\-={}\[\]|\\:;'",.<>?/~`]+$/u;
+
+        // Expresión regular para verificar que la cadena no contenga únicamente números
+        const contieneLetrasOCaracteresEspeciales = /[a-zA-ZÀ-ÿ]/;
+
+        // Verifica que la cadena no contenga únicamente números y que cumpla con los caracteres permitidos
+        return letrasConAcentosYEspeciales.test(cadena) && contieneLetrasOCaracteresEspeciales.test(cadena);
+
+      
+      //return /^[a-zA-Z\s]+$/.test(cadena); este es el formato antiguo
     }
     let descripcion: string | null = '';
     let establecimiento: string | null = '';

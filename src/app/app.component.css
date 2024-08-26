@@ -1,61 +1,13 @@
-.button-container {
-  margin-top: 20px;
-}
 
-button {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
+/* styles.css o app.component.css */
+body {
+  background-color: #e0f7fa; /* Azul celeste suave */
+  margin: 0;
+  padding: 0;
 }
-/* Media query para dispositivos móviles */
-@media (max-width: 768px) {
-  .language-selector {
-    top: 10px; /* Ajusta según sea necesario */
-    left: 200px;
-    width: 100%; /* Ajusta el tamaño al 20% */
-  }
-
-    .language-selector img {
-      width: 6%; /* Ajusta el tamaño para móviles */
-    }
+/* styles.css o app.component.css */
+.app-container {
+  background-color: #e0f7fa; /* Azul celeste suave */
+  min-height: 100vh;
+  overflow: auto; /* Asegura que el contenido desbordado pueda desplazarse */
 }
-
-/* Estilos para el campo de texto del usuario */
-input[type="text"] {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #00897b;
-  background-color: #f5f5dc !important; /* Fuerza el fondo blanco marfil */
-  color: #004d40;
-  width: 150px;
-  box-sizing: border-box;
-}
-
-input[type="password"] {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 12px;
-  border: 1px solid #00897b;
-  background-color: #f5f5dc !important; /* Fuerza el fondo blanco marfil */
-  color: #004d40;
-  width: 300px;
-  box-sizing: border-box;
-}
-button {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 12px; /* Botones más redondeados */
-  border: 1px solid #00897b; /* Borde del botón */
-  color: #004d40; /* Color del texto del botón */
-  transition: background-color 0.3s ease;
-  font-size: 16px;
-}
-
-  button:hover {
-    background-color: #00897b; /* Fondo más oscuro al pasar el ratón */
-    color: #ffffff; /* Texto en blanco al pasar el ratón */
-  }

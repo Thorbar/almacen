@@ -49,39 +49,45 @@ button {
     background-color: #b2dfdb; /* Fondo más oscuro al pasar el ratón por encima */
   }
 
-.language-selector {
-  position: absolute;
-  top: 10px; /* Ajusta según sea necesario */
-  right: 10px; /* Ajusta según sea necesario */
-  display: flex;
-  gap: 10px; /* Espacio entre las banderas */
-}
 
-  .language-selector img {
-    width: 5%; /* Ajusta el tamaño al 20% */
-    height: auto;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: transform 0.3s ease;
+  .language-selector {
+    position: absolute;
+    top: 25px; /* Ajusta según sea necesario */
+    left: 500px;
+    display: flex;
+    gap: 10px; /* Espacio entre las banderas */
   }
-
-    .language-selector img.selected {
-      opacity: 1;
-      transform: scale(1.1);
-      border: 1px solid #007bff;
-      border-radius: 50%;
+  
+    .language-selector img {
+      width: 5%; /* Ajusta el tamaño al 20% */
+      height: auto;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: transform 0.3s ease;
     }
-
-    .language-selector img:hover {
-      transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
+  
+      .language-selector img.selected {
+        opacity: 1;
+        transform: scale(1.1);
+        border: 2px solid #007bff;
+        border-radius: 50%;
+      }
+  
+      .language-selector img:hover {
+        transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
+      }
+  /* Media query para dispositivos móviles */
+  @media (max-width: 768px) {
+    .language-selector {
+      top: 25px; /* Ajusta según sea necesario */
+      left: 200px;
+      width: 100%; /* Ajusta el tamaño al 20% */
     }
-
-/* Fondo del componente a azul celeste suave */
-:host {
-  display: block;
-  background-color: #e0f7fa; /* Azul celeste suave */
-  padding: 20px; /* Opcional: Añade un poco de padding */
-}
+  
+      .language-selector img {
+        width: 6%; /* Ajusta el tamaño para móviles */
+      }
+  }
 /* Clase para destacar artículos con stock 0 */
 .out-of-stock {
   color: red;

@@ -17,6 +17,8 @@
       <th>{{ 'ESTABLISHMENT' | translate }}</th>
       <th>{{ 'PRICE' | translate }}</th>
       <th>{{ 'STOCK' | translate }}</th>
+      <th>{{ 'CREATION_DATE' | translate }}</th>
+      <th>{{ 'MODIFICATION_DATE' | translate }}</th>
     </tr>
   </thead>
   <tbody>
@@ -26,6 +28,8 @@
       <td>{{ producto.establecimiento }}</td>
       <td>{{ producto.precio | currency }}</td>
       <td>{{ producto.cantidadStock }}</td>
+      <td>{{ producto.fechaCreacion | date: 'short' }}</td>
+      <td>{{ producto.fechaUltimaCompra | date: 'short' }}</td>
     </tr>
   </tbody>
 </table>

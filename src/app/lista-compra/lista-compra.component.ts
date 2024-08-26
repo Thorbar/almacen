@@ -36,7 +36,8 @@ export class ListaCompraComponent implements OnInit {
     ];
 
     const observables = categorias.map(categoria =>
-      this.firestore.collection<Producto>(categoria, ref => ref.where('cantidadStock', '<=', 1)).valueChanges().pipe(
+      this.firestore.collection<Producto>(categoria, ref => ref.where('cantidadStock', '<=', 1)//.orderBy('establecimiento')
+    ).valueChanges().pipe(
         map(productos =>
           productos.map(producto => {
             const fechaCreacion = producto.fechaCreacion instanceof firebase.firestore.Timestamp

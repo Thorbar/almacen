@@ -61,10 +61,11 @@ button {
   font-weight: bold;
 }
 
+
 .language-selector {
   position: absolute;
-  top: 10px; /* Ajusta según sea necesario */
-  right: 10px; /* Ajusta según sea necesario */
+  top: 25px; /* Ajusta según sea necesario */
+  left: 500px;
   display: flex;
   gap: 10px; /* Espacio entre las banderas */
 }
@@ -80,25 +81,17 @@ button {
     .language-selector img.selected {
       opacity: 1;
       transform: scale(1.1);
-      border: 1px solid #007bff;
+      border: 2px solid #007bff;
       border-radius: 50%;
     }
 
     .language-selector img:hover {
       transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
     }
-
-/* Fondo del componente a azul celeste suave */
-:host {
-  display: block;
-  background-color: #e0f7fa; /* Azul celeste suave */
-  padding: 20px; /* Opcional: Añade un poco de padding */
-}
-
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
   .language-selector {
-    top: 10px; /* Ajusta según sea necesario */
+    top: 25px; /* Ajusta según sea necesario */
     left: 200px;
     width: 100%; /* Ajusta el tamaño al 20% */
   }
