@@ -1,50 +1,83 @@
-/* Estilos para el campo de texto del usuario */
-input[type="text"] {
-  margin: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 12px; /* Bordes redondeados */
-  border: 1px solid #00897b; /* Borde del campo de texto */
-  background-color: #f5f5dc; /* Fondo blanco marfil */
-  color: #004d40; /* Color del texto */
-  width: 150px; /* La mitad del tamaño de la contraseña */
-  box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+/* Estilos para el contenedor principal del formulario */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%; /* Asegura que el formulario ocupe todo el ancho disponible */
 }
 
-/* Estilos para el campo de texto de la contraseña */
+/* Estilos para los campos de texto */
+input[type="text"],
+input[type="email"],
+input[type="date"],
 input[type="password"] {
-  margin: 5px;
+  margin: 10px 0; /* Espacio entre los campos */
   padding: 10px 20px;
   font-size: 16px;
-  border-radius: 12px; /* Bordes redondeados */
-  border: 1px solid #00897b; /* Borde del campo de texto */
-  background-color: #f5f5dc; /* Fondo blanco marfil */
-  color: #004d40; /* Color del texto */
-  width: 300px; /* Tamaño completo */
-  box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+  border-radius: 12px;
+  border: 1px solid #00897b;
+  background-color: #f5f5dc;
+  color: #004d40;
+  width: 100%; /* Asegura que los campos ocupen el ancho disponible */
+  max-width: 300px; /* Establece un ancho máximo */
+  box-sizing: border-box;
 }
 
-  /* Estilo al hacer hover sobre los campos de texto */
-  input[type="text"]:hover,
-  input[type="password"]:hover {
-    border-color: #004d40; /* Cambia el color del borde al hacer hover */
-  }
+/* Estilos para el título */
+ .CreateAccount {
+  margin: 5px 0; /* Espacio alrededor del título */
+  padding-left: 40px; /* Mueve el título 10px a la derecha */
+  font-size: 34px; /* Ajusta el tamaño del texto según sea necesario */
+  color: #004d40; /* Color del texto */
+ 
+
+}
+/* Estilo para la etiqueta de fecha de nacimiento */
+.Dob {
+  margin: 10px 0;
+  font-size: 16px;
+  padding-left: 50px;    
+  color: #004d40;
+  margin-top: 60px; /* Ajusta la distancia entre la etiqueta y el campo de fecha */
+
+}
+
+/* Estilos para el grupo de botones */
+.button-group {
+  display: flex;
+  gap: 10px; /* Espacio entre los botones */
+  margin-top: 20px;
+}
 
 /* Estilos del botón */
 button {
-  margin: 5px;
   padding: 10px 20px;
   font-size: 16px;
-  border-radius: 12px; /* Botones más redondeados */
-  border: 1px solid #00897b; /* Borde del botón */
-  color: #004d40; /* Color del texto del botón */
+  border-radius: 12px;
+  border: 1px solid #00897b;
+  color: #004d40;
   transition: background-color 0.3s ease;
 }
 
-  button:hover {
-    background-color: #00897b; /* Fondo más oscuro al pasar el ratón */
-    color: #ffffff; /* Texto en blanco al pasar el ratón */
+button:hover {
+  background-color: #00897b;
+  color: #ffffff;
+}
+
+/* Media query para dispositivos móviles */
+@media (max-width: 768px) {
+  .register-form {
+    padding: 0 10px; /* Ajusta el padding en dispositivos móviles */
   }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="password"] {
+    width: 100%; /* Asegura que los campos ocupen todo el ancho disponible en móviles */
+    max-width: none; /* Elimina el ancho máximo en móviles */
+  }
+}
 
 /* Contenedor del spinner */
 .loading-container {
@@ -135,3 +168,5 @@ button {
       width: 6%; /* Ajusta el tamaño para móviles */
     }
 }
+
+

@@ -3,7 +3,27 @@
   <input [(ngModel)]="username" type="text" placeholder="Username" required>
   <input [(ngModel)]="password" type="password" placeholder="Password" required>
   <button (click)="login()">{{ 'LOGIN' | translate }}</button>
+  <button (click)="showRegisterForm()">{{ 'CREATE_USER' | translate }}</button>
 </div>
+
+<!-- Formulario para crear usuario -->
+<div *ngIf="showRegister" class="register-form">
+  <h2 class="CreateAccount">{{ 'CREATE_ACCOUNT' | translate }}</h2>
+  <input [(ngModel)]="newUser.firstName" type="text" placeholder="{{ 'FIRST_NAME' | translate }}" required>
+  <input [(ngModel)]="newUser.lastName" type="text" placeholder="{{ 'LAST_NAME' | translate }}">
+  <input [(ngModel)]="newUser.dob" type="date" placeholder="{{ 'DOB' | translate }}" required>
+  <input [(ngModel)]="newUser.email" type="email" placeholder="{{ 'EMAIL' | translate }}" required>
+  <input [(ngModel)]="newUser.username" type="text" placeholder="{{ 'USERNAME' | translate }}" required>
+  <input [(ngModel)]="newUser.password" type="password" placeholder="{{ 'PASSWORD' | translate }}" required>
+  <input [(ngModel)]="newUser.confirmPassword" type="password" placeholder="{{ 'CONFIRM_PASSWORD' | translate }}" required>
+  <input [(ngModel)]="newUser.emailPrincipal" type="email" placeholder="{{ 'EMAIL_PRINCIPAL' | translate }}">
+  <div class="button-group">
+    <button (click)="registerUser()">{{ 'REGISTER' | translate }}</button>
+    <button (click)="cancelRegister()">{{ 'CANCEL' | translate }}</button>
+  </div>
+</div>
+
+
 
 <!-- Spinner de carga -->
 <div *ngIf="loading" class="loading-container">
@@ -13,8 +33,9 @@
   <p>{{ 'LOADING' | translate }}</p>
 </div>
 
+
 <div class="language-selector">
-  <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'"> />
-  <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'"> />
-  <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'"> />
+  <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'">
+  <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'">
+  <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'">
 </div>

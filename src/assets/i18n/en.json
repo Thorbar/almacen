@@ -77,6 +77,28 @@
   "LOGIN_FAILED_MESSAGE": "Username or password is incorrect. Please check your details and try again.",
   "ACCOUNT_LOCKED": "Account Locked",
   "RETRY_AFTER": "Retry after",
-  "MINUTES": "minutes"
+  "MINUTES": "minutes",
+  "OK": "OK",
+  "ERROR_CREATING_ACCOUNT": "Error creating account",
+  "CREATE_ACCOUNT": "Create Account",
+  "NAME": "Name",
+  "LAST_NAME": "Last Name",
+  "EMAIL": "Email",
+  "USERNAME": "Username",
+  "PASSWORD": "Password",
+  "CONFIRM_PASSWORD": "Confirm Password",
+  "PRIMARY_EMAIL": "Primary Email",
+  "HELP_PRIMARY_EMAIL": "Primary email is required if there is more than one user in the household.",
+  "CREATE_USER": "Create user",
+  "FIRST_NAME": "Name",
+  "EMAIL_PRINCIPAL":"Main Email",
+  "REGISTER": "Register",
+  "CANCEL": "Cancel",
+  "DOB": "Birth date",
+  "FIELD_REQUIRED": "Field required",
+  "PLEASE_FILL_IN_ALL_FIELDS": "Please fill in all fields.",
+  "ACCOUNT_CREATED":"Account Created"
+
+
 
 }
