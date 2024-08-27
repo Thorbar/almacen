@@ -1,13 +1,15 @@
-
-/* styles.css o app.component.css */
+/* Estilo para el fondo de la página de login */
 body {
   background-color: #e0f7fa; /* Azul celeste suave */
   margin: 0;
   padding: 0;
+  min-height: 100vh; /* Asegura que cubre toda la altura de la ventana */
+  overflow: hidden; /* Evita que se vea contenido desplazado en blanco */
 }
-/* styles.css o app.component.css */
+
+/* Contenedor principal de la app para asegurar que todo esté cubierto */
 .app-container {
   background-color: #e0f7fa; /* Azul celeste suave */
   min-height: 100vh;
-  overflow: auto; /* Asegura que el contenido desbordado pueda desplazarse */
+  overflow: hidden;
 }

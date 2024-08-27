@@ -1,0 +1,20 @@
+{
+  "short_name": "Almacen",
+  "name": "Almacen de TymBar",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FFD1C1", /* color de fondo de la splash screen, pantalla de carga*/
+  "theme_color": "#e0f7fa", /* color de la app */
+  "icons": [
+    {
+      "src": "assets/supermarket.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    },
+    {
+      "src": "assets/supermarket.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

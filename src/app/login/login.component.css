@@ -1,3 +1,19 @@
+/* Estilo para el fondo de la página de login */
+body {
+  background-color: #e0f7fa; /* Azul celeste suave */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh; /* Asegura que cubre toda la altura de la ventana */
+  overflow: hidden; /* Evita que se vea contenido desplazado en blanco */
+}
+
+/* Contenedor principal de la app para asegurar que todo esté cubierto */
+.app-container {
+  background-color: #e0f7fa; /* Azul celeste suave */
+  min-height: 100vh;
+  overflow: hidden;
+}
+
 /* Estilos para el contenedor principal del formulario */
 .register-form {
   display: flex;
