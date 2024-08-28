@@ -99,5 +99,6 @@
   "PLEASE_RETRY": "Intentalo de nuevo",
   "FIELD_REQUIRED": "Campo requerido",
   "PLEASE_FILL_IN_ALL_FIELDS": "Por favor, rellene todos los campos.",
-  "ACCOUNT_CREATED":"Cuenta Creada"
+  "ACCOUNT_CREATED":"Cuenta Creada",
+  "REGISTRATION_CANCELLED": "Registro cancelado"
 }

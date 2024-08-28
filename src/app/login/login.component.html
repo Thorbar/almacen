@@ -23,6 +23,11 @@
   </div>
 </div>
 
+<div *ngIf="errorMessage" class="alert-container">
+  <app-alert [type]="alertType" [message]="errorMessage"></app-alert>
+</div>
+
+<!-- Tu formulario de inicio de sesión aquí -->
 
 
 <!-- Spinner de carga -->

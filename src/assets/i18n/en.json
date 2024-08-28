@@ -97,7 +97,8 @@
   "DOB": "Birth date",
   "FIELD_REQUIRED": "Field required",
   "PLEASE_FILL_IN_ALL_FIELDS": "Please fill in all fields.",
-  "ACCOUNT_CREATED":"Account Created"
+  "ACCOUNT_CREATED":"Account Created",
+  "REGISTRATION_CANCELLED": "Register cancelled"
 
 
 

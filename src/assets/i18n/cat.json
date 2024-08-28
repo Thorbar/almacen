@@ -97,7 +97,9 @@
   "DOB": "Data de naixement",
   "FIELD_REQUIRED": "Camp obligatori",
   "PLEASE_FILL_IN_ALL_FIELDS": "Si us plau, ompliu tots els camps.",
-  "ACCOUNT_CREATED":"Compte Creat"
+  "ACCOUNT_CREATED":"Compte Creat",
+  "REGISTRATION_CANCELLED": "Registre cancelat"
+
 
 
 

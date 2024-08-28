@@ -19,6 +19,10 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
 import { AngularFireModule } from '@angular/fire/compat';
 import { AngularFireAuthModule } from '@angular/fire/compat/auth';
 import { LoginComponent } from './login/login.component';
+import { AlertComponent } from './alert/alert.component';
+import { CommonModule } from '@angular/common';
+import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component'; // Importar CommonModule
+
 
 // La función HttpLoaderFactory utiliza HttpClient
 export function HttpLoaderFactory(http: HttpClient) {
@@ -32,10 +36,13 @@ export function HttpLoaderFactory(http: HttpClient) {
     ArticulosComponent,
     StockActualComponent,
     ListaCompraComponent,
-    LoginComponent
+    LoginComponent,
+    AlertComponent,
+    ConfirmDialogComponent
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     HttpClientModule,  // Aquí se importa HttpClientModule para proveer HttpClient
     TranslateModule.forRoot({
       loader: {

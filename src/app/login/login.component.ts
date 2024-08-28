@@ -1,11 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { ChangeDetectorRef } from '@angular/core';
-import Swal from 'sweetalert2';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+
 
 @Component({
   selector: 'app-login',
@@ -22,6 +24,11 @@ export class LoginComponent {
   loading = false;
   failedAttempts = 0;
   lockoutEndTime: number | null = null;
+  isSubmitDisabled: boolean = false;
+
+
+  errorMessage: string = '';
+  alertType: 'success' | 'error' | 'info'  = 'info'; // Añadido 'warning'
 
   newUser = {
     firstName: '',
@@ -39,7 +46,8 @@ export class LoginComponent {
     private firestore: AngularFirestore,
     private router: Router,
     private translate: TranslateService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {
     const savedLanguage = localStorage.getItem('selectedLanguage');
     this.selectedLanguage = savedLanguage || 'es';
@@ -71,34 +79,50 @@ export class LoginComponent {
     this.showWelcome = true;
     this.showRegister = false;
   }
+  //Mostramos mensajes
+  showAlert(message: string, type: 'success' | 'error' | 'info') {
+    this.errorMessage = message;
+    this.alertType = type;
+    setTimeout(() => {
+      this.errorMessage = ''; // Esto oculta el alert 2 segundos
+    }, 2000); 
+  }
+  //Confirmar creacion usuario
+  openConfirmDialog(username: string): Promise<boolean> {
+    this.isSubmitDisabled = true; // Deshabilitar el botón
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {      
+      width: '350px',
+      data: { username },
+      position: { top: '-30%'} // Ajusta la posición
+    });
+
+    return dialogRef.afterClosed().toPromise().finally(() => {
+      this.isSubmitDisabled = false; // Habilitar el botón después de cerrar el diálogo
+    });  }
 
   async registerUser() {
     if (this.newUser.password !== this.newUser.confirmPassword) {
-      Swal.fire({
-        title: this.translate.instant('PASSWORD_MISMATCH'),
-        text: this.translate.instant('PLEASE_RETRY'),
-        icon: 'error',
-        confirmButtonText: this.translate.instant('OK')
-      });
+      this.showAlert(this.translate.instant('PASSWORD_MISMATCH'), 'error');
+      return;
+    } else if (!this.newUser.username) {
+      this.showAlert(this.translate.instant('EMPTY_USER'), 'error');
       return;
     }
-/*
-    if (!this.validateRegisterFields()) {
-      return; // Detener el registro si hay campos vacíos
-    }*/
-
-    const auth = getAuth();
+    // Preguntar confirmación antes de continuar
+    const confirmed = await this.openConfirmDialog(this.newUser.username);
+    if (!confirmed) {
+      this.showAlert(this.translate.instant('REGISTRATION_CANCELLED'), 'info');
+      return;
+    }
     this.loading = true;
 
     try {
+      const auth = getAuth();
       const existingUser = await fetchSignInMethodsForEmail(auth, this.newUser.email);
 
       if (existingUser.length > 0) {
-        Swal.fire({
-          title: this.translate.instant('EMAIL_ALREADY_EXISTS'),
-          icon: 'error',
-          confirmButtonText: this.translate.instant('OK')
-        });
+        this.showAlert(this.translate.instant('EMAIL_ALREADY_EXISTS'), 'error');
         this.loading = false;
         return;
       }
@@ -106,12 +130,7 @@ export class LoginComponent {
       if (this.newUser.emailPrincipal) {
         const principalUser = await fetchSignInMethodsForEmail(auth, this.newUser.emailPrincipal);
         if (principalUser.length === 0) {
-          Swal.fire({
-            title: this.translate.instant('EMAIL_PRINCIPAL_NOT_FOUND'),
-            text: this.translate.instant('CONTACT_EMAIL_PRINCIPAL_OWNER'),
-            icon: 'error',
-            confirmButtonText: this.translate.instant('OK')
-          });
+          this.showAlert(this.translate.instant('EMAIL_PRINCIPAL_NOT_FOUND'||'CONTACT_EMAIL_PRINCIPAL_OWNER'), 'error');
           this.loading = false;
           return;
         }
@@ -130,55 +149,33 @@ export class LoginComponent {
         createdAt: new Date()
       });
       
-      Swal.fire({
-        title: this.translate.instant('ACCOUNT_CREATED'),
-        icon: 'success',
-        confirmButtonText: this.translate.instant('OK')
-      });
-
+      this.showAlert(this.translate.instant('ACCOUNT_CREATED'), 'success');
       this.showWelcome = true;
       this.showRegister = false;
       this.loading = false;
 
-
       //this.router.navigate(['/main-site']);
     } catch (error) {
-      Swal.fire({
-        title: this.translate.instant('ERROR_CREATING_ACCOUNT'),
-        text: (error as Error).message,
-        icon: 'error',
-        confirmButtonText: this.translate.instant('TRY_AGAIN')
-      });
+      this.showAlert(this.translate.instant('ERROR_CREATING_ACCOUNT'||'TRY_AGAIN'), 'error');
     } finally {
       this.loading = false;
     }
   }
 
-
   login() {
+    const auth = getAuth();
     if (this.isLockedOut()) {
       const remainingTime = Math.ceil((this.lockoutEndTime! - Date.now()) / 60000);
-      Swal.fire({
-        title: this.translate.instant('ACCOUNT_LOCKED'),
-        text: `${this.translate.instant('RETRY_AFTER')} ${remainingTime} ${this.translate.instant('MINUTES')}`,
-        icon: 'warning',
-        confirmButtonText: this.translate.instant('OK')
-      });
+      this.showAlert(`${this.translate.instant('RETRY_AFTER')} ${remainingTime} ${this.translate.instant('MINUTES')}`, 'info');
       return;
     }
-/*
-    if (!this.validateLoginFields()) {
-      return; // Detener el inicio de sesión si hay campos vacíos
-    }
-*/
+
     this.showWelcome = false;
     this.loading = true;
 
     if (this.username === 'thorbar') {
       this.email = 'davidribe86@gmail.com';
     }
-
-    const auth = getAuth();
 
     signInWithEmailAndPassword(auth, this.email, this.password)
       .then((userCredential) => {
@@ -202,13 +199,7 @@ export class LoginComponent {
           this.startLockout();
         }
 
-        Swal.fire({
-          title: this.translate.instant('LOGIN_FAILED'),
-          text: errorMessage,
-          icon: 'error',
-          confirmButtonText: this.translate.instant('TRY_AGAIN')
-        });
-
+        this.showAlert(errorMessage, 'error');
         this.showWelcome = true;
         this.loading = false;
         this.cdRef.detectChanges();
@@ -218,32 +209,6 @@ export class LoginComponent {
         this.cdRef.detectChanges();
       });
   }
-
-  validateLoginFields(): boolean {
-    if (!this.email || !this.password) {
-      Swal.fire({
-        title: this.translate.instant('FIELD_REQUIRED'),
-        text: this.translate.instant('PLEASE_FILL_IN_ALL_FIELDS'),
-        icon: 'warning',
-        confirmButtonText: this.translate.instant('OK')
-      });
-      return false;
-    }
-    return true;
-  }
-/*
-  validateRegisterFields(): boolean {
-    if (!this.newUser.firstName || !this.newUser.email || !this.newUser.password || !this.newUser.confirmPassword) {
-      Swal.fire({
-        title: this.translate.instant('FIELD_REQUIRED'),
-        text: this.translate.instant('PLEASE_FILL_IN_ALL_FIELDS'),
-        icon: 'warning',
-        confirmButtonText: this.translate.instant('OK')
-      });
-      return false;
-    }
-    return true;
-  }*/
 
   isLockedOut(): boolean {
     if (this.lockoutEndTime && Date.now() < this.lockoutEndTime) {

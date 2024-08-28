@@ -8,5 +8,7 @@ npm install @angular/fire@latest firebase
 
 
 ng generate service services/product
-npm install sweetalert2
+npm install @angular/material @angular/cdk
+ng generate component confirm-dialog
+
 
