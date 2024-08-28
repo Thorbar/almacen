@@ -25,10 +25,12 @@ export class LoginComponent {
   failedAttempts = 0;
   lockoutEndTime: number | null = null;
   isSubmitDisabled: boolean = false;
+  showAlertMail = false;
+  alertMessage = '';
 
 
   errorMessage: string = '';
-  alertType: 'success' | 'error' | 'info'  = 'info'; // Añadido 'warning'
+  alertType: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'confirm' = 'info'; // Añadido 'warning'
 
   newUser = {
     firstName: '',
@@ -61,6 +63,7 @@ export class LoginComponent {
   ngOnInit() {
     this.showWelcome = true;
     this.loading = false;
+    
   }
 
   changeLanguage(lang: string) {
@@ -73,6 +76,8 @@ export class LoginComponent {
   showRegisterForm() {
     this.showWelcome = false;
     this.showRegister = true;
+    this.showAlert(this.translate.instant('EMAIL_PRINCIPAL_NOT_FOUND'), 'info_email');
+
   }
 
   cancelRegister() {
@@ -80,13 +85,18 @@ export class LoginComponent {
     this.showRegister = false;
   }
   //Mostramos mensajes
-  showAlert(message: string, type: 'success' | 'error' | 'info') {
+  showAlert(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'confirm') {
     this.errorMessage = message;
     this.alertType = type;
-    setTimeout(() => {
-      this.errorMessage = ''; // Esto oculta el alert 2 segundos
-    }, 2000); 
+
+    // Si la alerta es de tipo 'info_email', no se oculta automáticamente
+    if (type !== 'info_email') {
+      setTimeout(() => {
+        this.errorMessage = ''; // Esto oculta el alert después de 2 segundos
+      }, 2000);
+    } 
   }
+
   //Confirmar creacion usuario
   openConfirmDialog(username: string): Promise<boolean> {
     this.isSubmitDisabled = true; // Deshabilitar el botón
@@ -100,15 +110,57 @@ export class LoginComponent {
     return dialogRef.afterClosed().toPromise().finally(() => {
       this.isSubmitDisabled = false; // Habilitar el botón después de cerrar el diálogo
     });  }
+  isPasswordValid(password: string): boolean {
+    // Expresión regular para validar:
+    // - Al menos 9 caracteres
+    // - Al menos una letra mayúscula
+    // - Al menos un carácter especial como !, @, #, $, etc.
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}|:"<>?[\]\/\\;.,]).{9,}$/;
+    return passwordRegex.test(password);
+  }
+  isValidEmail(email: string): boolean {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email);
+  }
+
 
   async registerUser() {
     if (this.newUser.password !== this.newUser.confirmPassword) {
       this.showAlert(this.translate.instant('PASSWORD_MISMATCH'), 'error');
       return;
     } else if (!this.newUser.username) {
-      this.showAlert(this.translate.instant('EMPTY_USER'), 'error');
+      this.showAlert(this.translate.instant('EMPTY_USER'), 'warning');
+      return;
+    } else if (this.newUser.username.length < 4) {
+      this.showAlert(this.translate.instant('SHORT_USER'), 'warning');
+      return;
+    } else if (!this.newUser.password || !this.newUser.confirmPassword) {
+      this.showAlert(this.translate.instant('EMPTY_PASSWORD'), 'warning');
+      return;
+    } else if (!this.isPasswordValid(this.newUser.password) || !this.isPasswordValid(this.newUser.confirmPassword)) {
+      this.showAlert(this.translate.instant('INVALID_PASSWORD'), 'error');
+      return;
+    } else if (!this.newUser.email) {
+      this.showAlert(this.translate.instant('EMPTY_EMAIL'), 'warning');
+      return;
+    } else if (this.newUser.email && !this.isValidEmail(this.newUser.email)) {
+      this.showAlert(this.translate.instant('VALID_EMAIL'), 'warning');
+      return;
+    } else if (!this.newUser.firstName) {
+      this.showAlert(this.translate.instant('EMPTY_NAME'), 'warning');
+      return;
+    } else if (!this.newUser.lastName) {
+      this.showAlert(this.translate.instant('EMPTY_LASTNAME'), 'warning');
+      return;
+    } else if (!this.newUser.emailPrincipal) {
+      this.showAlert(this.translate.instant('EMAIL_PRINCIPAL_NOT_FOUND' || 'CONTACT_EMAIL_PRINCIPAL_OWNER'), 'info_email');
+      return;
+    } else if (!this.newUser.dob) {
+      this.showAlert(this.translate.instant('EMPTY_DOB' || 'CONTACT_EMAIL_PRINCIPAL_OWNER'), 'info_email');
       return;
     }
+
+
     // Preguntar confirmación antes de continuar
     const confirmed = await this.openConfirmDialog(this.newUser.username);
     if (!confirmed) {

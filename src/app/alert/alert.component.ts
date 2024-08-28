@@ -6,21 +6,25 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
   styleUrls: ['./alert.component.css']
 })
 export class AlertComponent implements OnInit {
-  @Input() type: 'success' | 'error' | 'info'  | 'confirm' = 'info';
+  @Input() type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'confirm' = 'info';
   @Input() message: string = '';
   @Output() onConfirm = new EventEmitter<void>();
   @Output() onCancel = new EventEmitter<void>();
+
   isConfirm: boolean = this.type === 'confirm';
+  shouldAutoHide: boolean = this.type !== 'info_email'; // No oculta para 'info_email'
+  showAlert: boolean = true; // Controla la visibilidad
 
-
-  constructor() {}
+  constructor() { }
 
   ngOnInit() {
-    setTimeout(() => {
-      // Opcional: Puedes agregar lógica para ocultar el alert
-      // Por ejemplo, se puede emitir un evento para que el padre elimine el componente
-    }, 2000); // 2000 ms = 2 segundos
+    if (this.shouldAutoHide) {
+      setTimeout(() => {
+        this.showAlert = false; // Esto oculta el alert después de 2 segundos
+      }, 2000);
+    }
   }
+
   confirm() {
     this.onConfirm.emit();
   }

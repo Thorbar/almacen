@@ -91,7 +91,7 @@
   "HELP_PRIMARY_EMAIL": "Correo electrónico principal es requerido si hay más de un usuario en la casa.",
   "CREATE_USER": "Crear usuario",
   "FIRST_NAME": "Nombre",
-  "EMAIL_PRINCIPAL":"Email Principal",
+  "EMAIL_PRINCIPAL": "Email Principal",
   "REGISTER": "Registrar",
   "CANCEL": "Cancelar",
   "DOB": "Fecha de nacimiento",
@@ -99,6 +99,28 @@
   "PLEASE_RETRY": "Intentalo de nuevo",
   "FIELD_REQUIRED": "Campo requerido",
   "PLEASE_FILL_IN_ALL_FIELDS": "Por favor, rellene todos los campos.",
-  "ACCOUNT_CREATED":"Cuenta Creada",
-  "REGISTRATION_CANCELLED": "Registro cancelado"
+  "ACCOUNT_CREATED": "Cuenta Creada",
+  "REGISTRATION_CANCELLED": "Registro cancelado",
+  "EMPTY_USER": "Se debe rellenar los datos",
+  "SHORT_USER": "Longitud mínima de usuario es de 4 carácteres",
+  "EMPTY_PASSWORD": "La contraseña no puede estar vacía",
+  "INVALID_PASSWORD": "La contraseña debe tener al menos 9 caracteres, incluir al menos una letra mayúscula y un carácter especial",
+  "EMPTY_EMAIL": "El correo electrónico no puede estar vacío",
+  "VALID_EMAIL": "Por favor, introduce una dirección de correo electrónico válida.",
+  "EMPTY_NAME": "El nombre no puede estar vacío",
+  "EMPTY_LASTNAME": "El apellido no puede estar vacío",
+  "EMAIL_PRINCIPAL_NOT_FOUND": "Si comparte con otra persona y esta ya tiene cuenta, inserte su correo"
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

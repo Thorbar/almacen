@@ -91,14 +91,31 @@
   "HELP_PRIMARY_EMAIL": "Primary email is required if there is more than one user in the household.",
   "CREATE_USER": "Create user",
   "FIRST_NAME": "Name",
-  "EMAIL_PRINCIPAL":"Main Email",
+  "EMAIL_PRINCIPAL": "Main Email",
   "REGISTER": "Register",
   "CANCEL": "Cancel",
   "DOB": "Birth date",
   "FIELD_REQUIRED": "Field required",
   "PLEASE_FILL_IN_ALL_FIELDS": "Please fill in all fields.",
-  "ACCOUNT_CREATED":"Account Created",
-  "REGISTRATION_CANCELLED": "Register cancelled"
+  "ACCOUNT_CREATED": "Account Created",
+  "REGISTRATION_CANCELLED": "Register cancelled",
+  "EMPTY_USER": "Must fill in",
+  "SHORT_USER": "User minimum length of 4 characters",
+  "EMPTY_PASSWORD": "Password cannot be empty",
+  "INVALID_PASSWORD": "Password must be at least 9 characters long, include at least one uppercase letter, and one special character",
+  "EMPTY_EMAIL": "Email can't be empty",
+  "VALID_EMAIL": "Please enter a valid email address.",
+  "EMPTY_NAME": "Name cannot be empty",
+  "EMPTY_LASTNAME": "Surname cannot be empty",
+  "EMAIL_PRINCIPAL_NOT_FOUND": "If shared with another person and they already have an account, insert their email"
+
+
+
+
+
+
+
+
 
 
 

@@ -91,16 +91,23 @@
   "HELP_PRIMARY_EMAIL": "El correu electrònic principal és necessari si hi ha més d'un usuari a la casa.",
   "CREATE_USER": "Crear usuari",
   "FIRST_NAME": "Nom",
-  "EMAIL_PRINCIPAL":"Email Principal",
+  "EMAIL_PRINCIPAL": "Email Principal",
   "REGISTER": "Registrar",
   "CANCEL": "Cancelar",
   "DOB": "Data de naixement",
   "FIELD_REQUIRED": "Camp obligatori",
   "PLEASE_FILL_IN_ALL_FIELDS": "Si us plau, ompliu tots els camps.",
-  "ACCOUNT_CREATED":"Compte Creat",
-  "REGISTRATION_CANCELLED": "Registre cancelat"
-
-
+  "ACCOUNT_CREATED": "Compte Creat",
+  "REGISTRATION_CANCELLED": "Registre cancelat",
+  "EMPTY_USER": "S'han d'omplir les dades",
+  "SHORT_USER": "Llarga mínima usuari es de 4 caràcters",
+  "EMPTY_PASSWORD": "La contrasenya no pot estar buida",
+  "INVALID_PASSWORD": "La contrasenya ha de tenir almenys 9 caràcters, incloure almenys una lletra majúscula i un caràcter especial.",
+  "EMPTY_EMAIL": "El correu electrònic no pot estar buit",
+  "VALID_EMAIL": "Si us plau, introdueix una adreça de corree vàlida",
+  "EMPTY_NAME": "El nom no pot estar buit",
+  "EMPTY_LASTNAME": "El cognom no pot estar buit",
+  "EMAIL_PRINCIPAL_NOT_FOUND": "Si comparteix amb un altre persona i aquesta ja té compte, inserti el seu correu"
 
 
 }

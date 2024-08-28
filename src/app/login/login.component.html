@@ -27,8 +27,11 @@
   <app-alert [type]="alertType" [message]="errorMessage"></app-alert>
 </div>
 
-<!-- Tu formulario de inicio de sesión aquí -->
 
+<!-- Tu formulario de inicio de sesión aquí -->
+<div *ngIf="showAlertMail">
+  <app-alert [type]="alertType" [message]="errorMessage"></app-alert>
+</div>
 
 <!-- Spinner de carga -->
 <div *ngIf="loading" class="loading-container">
