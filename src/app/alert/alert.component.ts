@@ -18,11 +18,11 @@ export class AlertComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    if (this.shouldAutoHide) {
+  /*  if (this.shouldAutoHide) {
       setTimeout(() => {
         this.showAlert = false; // Esto oculta el alert después de 2 segundos
       }, 2000);
-    }
+    }*/
   }
 
   confirm() {

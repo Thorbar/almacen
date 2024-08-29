@@ -99,7 +99,7 @@
   "PLEASE_FILL_IN_ALL_FIELDS": "Si us plau, ompliu tots els camps.",
   "ACCOUNT_CREATED": "Compte Creat",
   "REGISTRATION_CANCELLED": "Registre cancelat",
-  "EMPTY_USER": "S'han d'omplir les dades",
+  "EMPTY_USER": "S'han d'afegir un usuari'",
   "SHORT_USER": "Llarga mínima usuari es de 4 caràcters",
   "EMPTY_PASSWORD": "La contrasenya no pot estar buida",
   "INVALID_PASSWORD": "La contrasenya ha de tenir almenys 9 caràcters, incloure almenys una lletra majúscula i un caràcter especial.",
@@ -107,7 +107,12 @@
   "VALID_EMAIL": "Si us plau, introdueix una adreça de corree vàlida",
   "EMPTY_NAME": "El nom no pot estar buit",
   "EMPTY_LASTNAME": "El cognom no pot estar buit",
-  "EMAIL_PRINCIPAL_NOT_FOUND": "Si comparteix amb un altre persona i aquesta ja té compte, inserti el seu correu"
-
+  "EMAIL_PRINCIPAL_NOT_FOUND": "Si comparteix amb un altre persona i aquesta ja té compte, inserti el seu correu",
+  "EMPTY_DOB": "La data de naixement no pot estar buida.",
+  "INCOMPLETE_DOB": "La data de naixement està incompleta. Si us plau, proporciona el dia, mes i any.",
+  "INVALID_DOB": "La data de naixement proporcionada no és vàlida.",
+  "AGE_REQUIREMENT_NOT_MET": "Has de tenir almenys 10 anys per registrar-te.",
+  "ALERT_EMAIL_PRINCIPAL_NOT_FOUND": "El camp de correu electrònic principal està buit. Si us plau, proporcioneu-lo.",
+  "CREATE_USER_CONFIRMATION_MESSAGE": "Vols crear l'usuari {{username}} per gestionar la base de dades?"
 
 }

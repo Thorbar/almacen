@@ -99,7 +99,7 @@
   "PLEASE_FILL_IN_ALL_FIELDS": "Please fill in all fields.",
   "ACCOUNT_CREATED": "Account Created",
   "REGISTRATION_CANCELLED": "Register cancelled",
-  "EMPTY_USER": "Must fill in",
+  "EMPTY_USER": "Must add user",
   "SHORT_USER": "User minimum length of 4 characters",
   "EMPTY_PASSWORD": "Password cannot be empty",
   "INVALID_PASSWORD": "Password must be at least 9 characters long, include at least one uppercase letter, and one special character",
@@ -107,16 +107,11 @@
   "VALID_EMAIL": "Please enter a valid email address.",
   "EMPTY_NAME": "Name cannot be empty",
   "EMPTY_LASTNAME": "Surname cannot be empty",
-  "EMAIL_PRINCIPAL_NOT_FOUND": "If shared with another person and they already have an account, insert their email"
-
-
-
-
-
-
-
-
-
-
-
+  "EMAIL_PRINCIPAL_NOT_FOUND": "If shared with another person and they already have an account, insert their email",
+  "EMPTY_DOB": "Date of birth cannot be empty.",
+  "INCOMPLETE_DOB": "Date of birth is incomplete. Please provide day, month, and year.",
+  "INVALID_DOB": "The provided date of birth is not valid.",
+  "AGE_REQUIREMENT_NOT_MET": "You must be at least 10 years old to register.",
+  "ALERT_EMAIL_PRINCIPAL_NOT_FOUND": "The principal email field is empty. Please provide it.",
+  "CREATE_USER_CONFIRMATION_MESSAGE": "Do you want to create the user {{username}} to manage the database?"
 }

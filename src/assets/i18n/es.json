@@ -101,7 +101,7 @@
   "PLEASE_FILL_IN_ALL_FIELDS": "Por favor, rellene todos los campos.",
   "ACCOUNT_CREATED": "Cuenta Creada",
   "REGISTRATION_CANCELLED": "Registro cancelado",
-  "EMPTY_USER": "Se debe rellenar los datos",
+  "EMPTY_USER": "Se debe indicar un usuario",
   "SHORT_USER": "Longitud mínima de usuario es de 4 carácteres",
   "EMPTY_PASSWORD": "La contraseña no puede estar vacía",
   "INVALID_PASSWORD": "La contraseña debe tener al menos 9 caracteres, incluir al menos una letra mayúscula y un carácter especial",
@@ -109,18 +109,12 @@
   "VALID_EMAIL": "Por favor, introduce una dirección de correo electrónico válida.",
   "EMPTY_NAME": "El nombre no puede estar vacío",
   "EMPTY_LASTNAME": "El apellido no puede estar vacío",
-  "EMAIL_PRINCIPAL_NOT_FOUND": "Si comparte con otra persona y esta ya tiene cuenta, inserte su correo"
-
-
-
-
-
-
-
-
-
-
-
-
+  "EMAIL_PRINCIPAL_NOT_FOUND": "Si comparte con otra persona y esta ya tiene cuenta, inserte su correo",
+  "EMPTY_DOB": "La fecha de nacimiento no puede estar vacía.",
+  "INCOMPLETE_DOB": "La fecha de nacimiento está incompleta. Asegúrate de proporcionar el día, mes y año.",
+  "INVALID_DOB": "La fecha de nacimiento proporcionada no es válida.",
+  "AGE_REQUIREMENT_NOT_MET": "Debes tener al menos 10 años para registrarte.",
+  "ALERT_EMAIL_PRINCIPAL_NOT_FOUND": "Email principal vacio, eso indica que usted es el primer usuario que se registra en su domicilio. /n Se le creará una base de datos nueva",
+  "CREATE_USER_CONFIRMATION_MESSAGE": "¿Quieres crear el usuario {{ data.username }} para gestionar la base de datos?"
 
 }

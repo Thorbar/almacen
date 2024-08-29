@@ -79,6 +79,19 @@ button:hover {
   background-color: #00897b;
   color: #ffffff;
 }
+/* Añadir una clase para los botones desactivados */
+button.disabled {
+  background-color: #ccc; /* Color de fondo para el estado desactivado */
+  cursor: not-allowed; /* Cambiar el cursor para indicar que no es clickeable */
+  opacity: 0.6; /* Reducir la opacidad para el estado desactivado */
+}
+
+/* Opcional: Cambiar el estilo del hover para los botones desactivados */
+button.disabled:hover {
+  background-color: #ccc; /* Mantener el color de fondo al pasar el mouse */
+  pointer-events: none; /* Deshabilitar todos los eventos del mouse */
+  color: #004d40;
+}
 
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
@@ -184,5 +197,3 @@ button:hover {
       width: 6%; /* Ajusta el tamaño para móviles */
     }
 }
-
-

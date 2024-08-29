@@ -18,20 +18,17 @@
   <input [(ngModel)]="newUser.confirmPassword" type="password" placeholder="{{ 'CONFIRM_PASSWORD' | translate }}" required>
   <input [(ngModel)]="newUser.emailPrincipal" type="email" placeholder="{{ 'EMAIL_PRINCIPAL' | translate }}">
   <div class="button-group">
-    <button (click)="registerUser()">{{ 'REGISTER' | translate }}</button>
-    <button (click)="cancelRegister()">{{ 'CANCEL' | translate }}</button>
+    <button (click)="registerUser()" [class.disabled]="buttonState.isDisabled || buttonState.isHoverDisabled">{{ 'REGISTER' | translate }}</button>
+    <button (click)="cancelRegister()" [class.disabled]="buttonState.isDisabled || buttonState.isHoverDisabled">{{ 'CANCEL' | translate }}</button>
   </div>
 </div>
-
+<!-- Muestra mensajes de error o warning de alertas al crear el usuario-->
 <div *ngIf="errorMessage" class="alert-container">
   <app-alert [type]="alertType" [message]="errorMessage"></app-alert>
 </div>
 
 
-<!-- Tu formulario de inicio de sesión aquí -->
-<div *ngIf="showAlertMail">
-  <app-alert [type]="alertType" [message]="errorMessage"></app-alert>
-</div>
+
 
 <!-- Spinner de carga -->
 <div *ngIf="loading" class="loading-container">
