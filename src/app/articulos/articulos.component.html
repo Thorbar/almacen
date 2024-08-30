@@ -15,13 +15,6 @@
     <p>{{ 'PRODUCT_QUESTION' | translate }}</p>
     <button (click)="startVoiceRecognition()">{{ 'START_VOICE_RECOG' | translate }}</button>
   </div>
-
-  <div class="language-selector">
-    <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'"> />
-    <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'"> />
-    <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'"> />
-  </div>
-
   <video #videoElement autoplay></video>
 
 

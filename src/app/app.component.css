@@ -13,3 +13,10 @@ body {
   min-height: 100vh;
   overflow: hidden;
 }
+@media (max-width: 768px) {
+  .register-form {
+    padding: 0 10px; /* Ajusta el padding en dispositivos móviles */    
+  }.language-selector{
+    width: 20%;
+  }
+}

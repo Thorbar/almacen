@@ -4,7 +4,6 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh; /* Asegura que cubre toda la altura de la ventana */
-  overflow: hidden; /* Evita que se vea contenido desplazado en blanco */
 }
 
 /* Contenedor principal de la app para asegurar que todo esté cubierto */
@@ -96,8 +95,11 @@ button.disabled:hover {
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
   .register-form {
-    padding: 0 10px; /* Ajusta el padding en dispositivos móviles */
+    padding: 0 10px; /* Ajusta el padding en dispositivos móviles */    
+  }.language-selector{
+    width: 20%;
   }
+  
 
   input[type="text"],
   input[type="email"],

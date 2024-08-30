@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild  } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { TranslateService } from '@ngx-translate/core';
 import Swal from 'sweetalert2';
+import { AlertComponent } from '../alert/alert.component';
 
 
 
@@ -14,6 +15,8 @@ import Swal from 'sweetalert2';
 export class MainSiteComponent {
   loading = false; // Añadido para manejar el estado de carga
   selectedLanguage: string = 'es'; // Declara la propiedad aquí
+  alertType: 'info' | 'error' = 'info'; // Añadido 'warning'
+
 
   constructor(
     private auth: AngularFireAuth,    
@@ -26,13 +29,6 @@ export class MainSiteComponent {
       this.translate.use(this.selectedLanguage);
     }
 
- // Función para cambiar el idioma
- changeLanguage(lang: string) {
-  this.selectedLanguage = lang; // Actualiza el idioma seleccionado
-  this.translate.setDefaultLang(lang);
-  this.translate.use(lang);
-  localStorage.setItem('selectedLanguage', lang)
-}
   consultarBaseDatos() {
     this.router.navigate(['/stock-actual']);
   }
@@ -46,8 +42,11 @@ export class MainSiteComponent {
   async cerrarSesion() {
     // Obtiene el texto traducido
     const confirmMessage = this.translate.instant('CONFIRM_LOGOUT');
+    //this.alertComponent.showAlerts(confirmMessage, 'confirm');    
+
     const confirmButtonText = this.translate.instant('YES');
     const cancelButtonText = this.translate.instant('NO');
+    //alert(confirmMessage);
 
     const result = await Swal.fire({
       title: confirmMessage,

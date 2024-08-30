@@ -6,6 +6,7 @@ import { ArticulosComponent } from './articulos/articulos.component';
 import { StockActualComponent } from './stock-actual/stock-actual.component';
 import { ListaCompraComponent } from './lista-compra/lista-compra.component';
 import { LoginComponent } from './login/login.component';
+import { CrearUsuarioComponent } from './crear-usuario/crear-usuario.component';
 
 
 const routes: Routes = [
@@ -13,7 +14,8 @@ const routes: Routes = [
   { path: 'main-site', component: MainSiteComponent },
   { path: 'articulos', component: ArticulosComponent },
   { path: 'stock-actual', component: StockActualComponent },
-  { path: 'lista', component: ListaCompraComponent }
+  { path: 'lista', component: ListaCompraComponent },
+  { path: 'crear-usuario', component:  CrearUsuarioComponent} 
 ];
 
 @NgModule({

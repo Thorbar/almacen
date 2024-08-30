@@ -23,6 +23,14 @@ button {
   border-collapse: collapse;
   margin: 20px 0;
 }
+/* Ajustar la tabla para que ocupe un ancho mínimo adecuado */
+.stock-table {
+  min-width: fit-content;
+}
+  /* Añadir scroll horizontal */
+  .stock-table-container {
+    overflow-x: auto;
+  }
 
   .stock-table th,
   .stock-table td,
@@ -54,49 +62,11 @@ button {
   .shopping-list-table tr:hover td {
     background-color: #b2dfdb; /* Fondo más oscuro al pasar el ratón por encima */
   }
-
-/* Clase para destacar artículos con stock 0 */
-.out-of-stock {
-  color: red;
-  font-weight: bold;
-}
-
-
-.language-selector {
-  position: absolute;
-  top: 25px; /* Ajusta según sea necesario */
-  left: 500px;
-  display: flex;
-  gap: 10px; /* Espacio entre las banderas */
-}
-
-  .language-selector img {
-    width: 5%; /* Ajusta el tamaño al 20% */
-    height: auto;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: transform 0.3s ease;
-  }
-
-    .language-selector img.selected {
-      opacity: 1;
-      transform: scale(1.1);
-      border: 2px solid #007bff;
-      border-radius: 50%;
-    }
-
-    .language-selector img:hover {
-      transform: scale(1.1); /* Pequeño aumento al pasar el ratón por encima */
-    }
 /* Media query para dispositivos móviles */
 @media (max-width: 768px) {
   .language-selector {
     top: 25px; /* Ajusta según sea necesario */
     left: 200px;
-    width: 100%; /* Ajusta el tamaño al 20% */
+    width: 20%; /* Ajusta el tamaño al 20% */
   }
-
-    .language-selector img {
-      width: 6%; /* Ajusta el tamaño para móviles */
-    }
 }

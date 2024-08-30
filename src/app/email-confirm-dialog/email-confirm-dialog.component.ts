@@ -11,12 +11,12 @@ export class EmailConfirmDialogComponent {
     public dialogRef: MatDialogRef<EmailConfirmDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { message: string }
   ) {}
-
-  onProceed(): void {
-    this.dialogRef.close(); // Cierra el diálogo y procede al siguiente diálogo
-  }
-  onNoClick(): void {
+  onCancel(): void {
     this.dialogRef.close(false); // Close dialog and return false
+  }
+
+  onConfirm(): void {
+    this.dialogRef.close(true); // Cierra el diálogo y procede al siguiente diálogo
   }
 
 }

@@ -4,7 +4,6 @@ import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Producto } from '../articulos/articulos.component';
 import { Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
 import firebase from 'firebase/compat/app';
 
 @Component({
@@ -19,13 +18,7 @@ export class ListaCompraComponent implements OnInit {
   constructor(
     private firestore: AngularFirestore,
     private router: Router,
-    private translate: TranslateService
-  ) {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    this.selectedLanguage = savedLanguage || 'es';
-    this.translate.setDefaultLang(this.selectedLanguage);
-    this.translate.use(this.selectedLanguage);
-  }
+  ) {}
 
   ngOnInit() {
     const categorias = [
@@ -63,12 +56,7 @@ export class ListaCompraComponent implements OnInit {
     );
   }
 
-  changeLanguage(lang: string) {
-    this.selectedLanguage = lang;
-    this.translate.setDefaultLang(lang);
-    this.translate.use(lang);
-    localStorage.setItem('selectedLanguage', lang);
-  }
+ 
 
   guardarCambios(producto: Producto) {
     const categoria = this.obtenerCategoria(producto);

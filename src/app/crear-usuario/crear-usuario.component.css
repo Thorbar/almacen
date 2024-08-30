@@ -1,0 +1,128 @@
+/* Estilo para el fondo de la página de login */
+body {
+    background-color: #e0f7fa; /* Azul celeste suave */
+    margin: 0;
+    padding: 0;
+    min-height: 100vh; /* Asegura que cubre toda la altura de la ventana */
+  }
+  
+  /* Contenedor principal de la app para asegurar que todo esté cubierto */
+  .app-container {
+    background-color: #e0f7fa; /* Azul celeste suave */
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Estilos para el contenedor principal del formulario */
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%; /* Asegura que el formulario ocupe todo el ancho disponible */
+  }
+  
+  /* Estilos para los campos de texto */
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="password"] {
+    margin: 10px 0; /* Espacio entre los campos */
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 1px solid #00897b;
+    background-color: #f5f5dc;
+    color: #004d40;
+    width: 100%; /* Asegura que los campos ocupen el ancho disponible */
+    max-width: 300px; /* Establece un ancho máximo */
+    box-sizing: border-box;
+  }
+  
+  /* Estilos para el título */
+   .CreateAccount {
+    margin: 5px 0; /* Espacio alrededor del título */
+    padding-left: 40px; /* Mueve el título 10px a la derecha */
+    font-size: 34px; /* Ajusta el tamaño del texto según sea necesario */
+    color: #004d40; /* Color del texto */
+   
+  
+  }
+  /* Estilo para la etiqueta de fecha de nacimiento */
+  .Dob {
+    margin: 10px 0;
+    font-size: 16px;
+    padding-left: 50px;    
+    color: #004d40;
+    margin-top: 60px; /* Ajusta la distancia entre la etiqueta y el campo de fecha */
+  
+  }
+  
+  /* Estilos para el grupo de botones */
+  .button-group {
+    display: flex;
+    gap: 10px; /* Espacio entre los botones */
+    margin-top: 20px;
+  }
+  
+  /* Estilos del botón */
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 1px solid #00897b;
+    color: #004d40;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #00897b;
+    color: #ffffff;
+  }
+  /* Añadir una clase para los botones desactivados */
+  button.disabled {
+    background-color: #ccc; /* Color de fondo para el estado desactivado */
+    cursor: not-allowed; /* Cambiar el cursor para indicar que no es clickeable */
+    opacity: 0.6; /* Reducir la opacidad para el estado desactivado */
+  }
+  
+  /* Opcional: Cambiar el estilo del hover para los botones desactivados */
+  button.disabled:hover {
+    background-color: #ccc; /* Mantener el color de fondo al pasar el mouse */
+    pointer-events: none; /* Deshabilitar todos los eventos del mouse */
+    color: #004d40;
+  }
+  
+  /* Media query para dispositivos móviles */
+  @media (max-width: 768px) {
+    .register-form {
+      padding: 0 10px; /* Ajusta el padding en dispositivos móviles */    
+    }.language-selector{
+      width: 20%;
+      top: 25px; /* Ajusta según sea necesario */
+      left: 200px;
+      width: fit-content;
+      
+    }.language-selector img {
+      width: 6%; /* Ajusta el tamaño para móviles */
+    }  .buttons-container {
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px; /* Reduce el margen para pantallas pequeñas */
+    }
+    
+  
+    input[type="text"],
+    input[type="email"],
+    input[type="date"],
+    input[type="password"] {
+      width: fit-content; /* Asegura que los campos ocupen todo el ancho disponible en móviles */
+      max-width: none; /* Elimina el ancho máximo en móviles */
+    }
+  }
+/* Estilo general para los botones */
+.buttons-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px; /* Ajusta el margen superior según sea necesario */
+}
+  

@@ -22,7 +22,8 @@ import { LoginComponent } from './login/login.component';
 import { AlertComponent } from './alert/alert.component';
 import { CommonModule } from '@angular/common';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
-import { EmailConfirmDialogComponent } from './email-confirm-dialog/email-confirm-dialog.component'; // Importar CommonModule
+import { EmailConfirmDialogComponent } from './email-confirm-dialog/email-confirm-dialog.component';
+import { CrearUsuarioComponent } from './crear-usuario/crear-usuario.component'; // Importar CommonModule
 
 
 // La función HttpLoaderFactory utiliza HttpClient
@@ -40,7 +41,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     LoginComponent,
     AlertComponent,
     ConfirmDialogComponent,
-    EmailConfirmDialogComponent
+    EmailConfirmDialogComponent,
+    CrearUsuarioComponent
   ],
   imports: [
     BrowserModule,

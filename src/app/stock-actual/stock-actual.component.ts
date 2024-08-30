@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
 import { Producto } from '../articulos/articulos.component'; // Importa la interfaz Producto
-import { TranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { orderBy } from '@angular/fire/firestore';
 import firebase from 'firebase/compat/app';
@@ -21,12 +20,7 @@ export class StockActualComponent implements OnInit {
   constructor(
     private firestore: AngularFirestore,
     private router: Router,
-    private translate: TranslateService
   ) {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
-    this.selectedLanguage = savedLanguage || 'es';
-    this.translate.setDefaultLang(this.selectedLanguage);
-    this.translate.use(this.selectedLanguage);
   }
   ngOnInit() {
     this.changeCollection(this.selectedCollection); // Inicializar con la colección predeterminada
@@ -34,14 +28,6 @@ export class StockActualComponent implements OnInit {
 
   volver() {
     this.router.navigate(['/main-site']);
-  }
-
-  // Función para cambiar el idioma
-  changeLanguage(lang: string) {
-    this.selectedLanguage = lang; // Actualiza el idioma seleccionado
-    this.translate.setDefaultLang(lang);
-    this.translate.use(lang);
-    localStorage.setItem('selectedLanguage', lang);
   }
 
   changeCollection(collection: string) {

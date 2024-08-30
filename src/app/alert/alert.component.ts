@@ -32,4 +32,10 @@ export class AlertComponent implements OnInit {
   cancel() {
     this.onCancel.emit();
   }
+    // Método para mostrar la alerta
+    showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'confirm') {
+      this.message = message;
+      this.type = type;
+      this.showAlert = true;
+    }
 }

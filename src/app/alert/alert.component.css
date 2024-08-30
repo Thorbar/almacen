@@ -37,7 +37,7 @@
 
   .alert.info_email {
     background-color: #9ffab1; /* Verde claro */
-    width: 475px;
+    width: fit-content;
     height: auto;
     margin-top: -65px;
     padding: 1px;
