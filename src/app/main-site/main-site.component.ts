@@ -2,8 +2,8 @@ import { Component, ViewChild  } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { TranslateService } from '@ngx-translate/core';
-import Swal from 'sweetalert2';
 import { AlertComponent } from '../alert/alert.component';
+import { Subscription } from 'rxjs';
 
 
 
@@ -16,18 +16,20 @@ export class MainSiteComponent {
   loading = false; // Añadido para manejar el estado de carga
   selectedLanguage: string = 'es'; // Declara la propiedad aquí
   alertType: 'info' | 'error' = 'info'; // Añadido 'warning'
-
+  @ViewChild(AlertComponent) alertComponent!: AlertComponent;
+  private confirmSubscription!: Subscription;
+  private cancelSubscription!: Subscription;
 
   constructor(
     private auth: AngularFireAuth,    
     private router: Router,
-    private translate: TranslateService
+    private translate: TranslateService    
     )  {
       const savedLanguage = localStorage.getItem('selectedLanguage');
       this.selectedLanguage = savedLanguage || 'es';
       this.translate.setDefaultLang(this.selectedLanguage);
       this.translate.use(this.selectedLanguage);
-    }
+  }
 
   consultarBaseDatos() {
     this.router.navigate(['/stock-actual']);
@@ -35,42 +37,51 @@ export class MainSiteComponent {
   comprobarArticulos() {
     this.router.navigate(['/articulos']);
   }
+  comprobarArticulosTiquet() {
+    this.router.navigate(['/articulos-tiquet']);
+  }
   listaCompra() {
     this.router.navigate(['/lista']);
   }
+  finalizarSesion() {
+    this.auth.signOut().then(() => {
+      this.router.navigate(['']);
+    }).catch(error => {
+      console.error('Error al cerrar sesión:', error);
+      // Puedes mostrar un mensaje de error si lo necesitas
+    });
+  }
 
-  async cerrarSesion() {
+  cerrarSesion() {
     // Obtiene el texto traducido
     const confirmMessage = this.translate.instant('CONFIRM_LOGOUT');
-    //this.alertComponent.showAlerts(confirmMessage, 'confirm');    
+    this.alertComponent.showAlerts(confirmMessage, 'confirm');
+    // Asegúrate de cancelar las suscripciones anteriores si existen
+    if (this.confirmSubscription) {
+      this.confirmSubscription.unsubscribe();
+    }
+    if (this.cancelSubscription) {
+      this.cancelSubscription.unsubscribe();
+    }
 
-    const confirmButtonText = this.translate.instant('YES');
-    const cancelButtonText = this.translate.instant('NO');
-    //alert(confirmMessage);
-
-    const result = await Swal.fire({
-      title: confirmMessage,
-      showCancelButton: true,
-      confirmButtonText: confirmButtonText,
-      cancelButtonText: cancelButtonText,
-      icon: 'warning'
+    // Suscribirse a las acciones de confirmación y cancelación
+    this.confirmSubscription = this.alertComponent.onConfirm.subscribe(() => {
+      this.finalizarSesion();
     });
 
-    if (result.isConfirmed) {
-      this.loading = true;
+    this.cancelSubscription = this.alertComponent.onCancel.subscribe(() => {
+      // Acciones opcionales si se cancela el cierre de sesión
+      console.log('El usuario ha cancelado el cierre de sesión');
+    });
+  }
 
-      try {
-        await this.auth.signOut();
-        this.router.navigate(['']);
-      } catch (error) {
-        const errorMessage = error instanceof Error
-          ? this.translate.instant('LOGOUT_ERROR', { error: error.message })
-          : this.translate.instant('UNKNOWN_LOGOUT_ERROR');
-
-        Swal.fire('Error', errorMessage, 'error');
-      } finally {
-        this.loading = false;
-      }
+  ngOnDestroy() {
+    // Asegúrate de limpiar las suscripciones para evitar fugas de memoria
+    if (this.confirmSubscription) {
+      this.confirmSubscription.unsubscribe();
+    }
+    if (this.cancelSubscription) {
+      this.cancelSubscription.unsubscribe();
     }
   }
 }

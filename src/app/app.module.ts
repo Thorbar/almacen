@@ -23,7 +23,10 @@ import { AlertComponent } from './alert/alert.component';
 import { CommonModule } from '@angular/common';
 import { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';
 import { EmailConfirmDialogComponent } from './email-confirm-dialog/email-confirm-dialog.component';
-import { CrearUsuarioComponent } from './crear-usuario/crear-usuario.component'; // Importar CommonModule
+import { CrearUsuarioComponent } from './crear-usuario/crear-usuario.component';
+import { ArticulosTiquetComponent } from './articulos-tiquet/articulos-tiquet.component'; // Importar CommonModule
+import { FirestoreService } from './services/firestore.service';
+
 
 
 // La función HttpLoaderFactory utiliza HttpClient
@@ -42,7 +45,8 @@ export function HttpLoaderFactory(http: HttpClient) {
     AlertComponent,
     ConfirmDialogComponent,
     EmailConfirmDialogComponent,
-    CrearUsuarioComponent
+    CrearUsuarioComponent,
+    ArticulosTiquetComponent
   ],
   imports: [
     BrowserModule,
@@ -61,7 +65,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AngularFireModule.initializeApp(environment.firebaseConfig),
     AngularFireAuthModule
   ],
-  providers: [],
+  providers: [FirestoreService],
   bootstrap: [AppComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })

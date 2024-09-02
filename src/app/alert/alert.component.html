@@ -1,9 +1,11 @@
-<div *ngIf="showAlert" class="alert" [ngClass]="type">
-  <div class="alert-message">
-    {{ message }}
-  </div>
-  <div *ngIf="isConfirm" class="alert-actions">
-    <button (click)="confirm()">Yes</button>
-    <button (click)="cancel()">No</button>
+<div *ngIf="showAlert" class="alert-overlay">
+  <div class="alert" [ngClass]="type">
+    <div class="alert-message">
+      {{ message }}
+    </div>
+    <div *ngIf="isConfirm" class="alert-actions">
+      <button (click)="confirm()">{{ 'YES' | translate }}</button>
+      <button (click)="cancel()">{{ 'NO' | translate }}</button>
+    </div>
   </div>
 </div>

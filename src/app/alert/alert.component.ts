@@ -6,36 +6,36 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
   styleUrls: ['./alert.component.css']
 })
 export class AlertComponent implements OnInit {
-  @Input() type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'confirm' = 'info';
+  @Input() type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'test' | 'confirm' = 'test';
   @Input() message: string = '';
   @Output() onConfirm = new EventEmitter<void>();
   @Output() onCancel = new EventEmitter<void>();
 
-  isConfirm: boolean = this.type === 'confirm';
-  shouldAutoHide: boolean = this.type !== 'info_email'; // No oculta para 'info_email'
+  isConfirm: boolean = false;
   showAlert: boolean = true; // Controla la visibilidad
 
   constructor() { }
 
   ngOnInit() {
-  /*  if (this.shouldAutoHide) {
-      setTimeout(() => {
-        this.showAlert = false; // Esto oculta el alert después de 2 segundos
-      }, 2000);
-    }*/
+    this.showAlert = false; // Asegúrate de que la alerta no se muestre al inicio
   }
-
+  // Método para mostrar la alerta
+  showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'confirm') {
+    this.message = message;
+    this.type = type;
+    this.showAlert = true;
+    this.isConfirm = this.type === 'confirm';
+  }
   confirm() {
     this.onConfirm.emit();
+    this.showAlert = false;;
+
   }
 
   cancel() {
     this.onCancel.emit();
+    this.showAlert = false;
+
   }
-    // Método para mostrar la alerta
-    showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'confirm') {
-      this.message = message;
-      this.type = type;
-      this.showAlert = true;
-    }
+
 }

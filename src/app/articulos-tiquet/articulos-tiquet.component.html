@@ -1,0 +1,32 @@
+<h2>Escanear Tiquet de Compra</h2>
+
+<div>
+  <input type="file" (change)="onFileSelected($event)" accept="image/*">
+</div>
+
+<div *ngIf="ticketImage">
+  <h3>Vista previa del tiquet:</h3>
+  <img [src]="ticketImage" alt="Ticket Preview" style="max-width: 100%;">
+</div>
+
+<button (click)="processTicket()">Procesar Tiquet</button>
+
+<div *ngIf="ocrResult">
+  <h3>Resultado del OCR:</h3>
+  <pre>{{ ocrResult }}</pre>
+</div>
+
+<div *ngIf="items && items.length > 0">
+  <h3>Artículos detectados:</h3>
+  <ul>
+    <li *ngFor="let item of items">
+      {{ item.quantity }} x {{ item.description }} - {{ item.price | currency }}
+    </li>
+  </ul>
+</div>
+
+<!-- Tu código HTML existente -->
+<!-- Botón de Volver -->
+<button (click)="volverAlMain()">Volver</button>
+
+

@@ -3,12 +3,10 @@ import { Router } from '@angular/router';
 import { BarcodeFormat } from '@zxing/library';
 import { HttpClient } from '@angular/common/http';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { ProductService } from '../services/product.service';  // Importa el servicio
-import Swal from 'sweetalert2';
-
 
 
 export interface Producto {
@@ -22,6 +20,9 @@ export interface Producto {
   fechaUltimaCompra?: Date;    // Se actualiza al agregar una cantidad
   fechaUltimoRetiro?: Date;    // Se actualiza al retirar una cantidad
 }
+
+type Categoria = 'fresco' | 'seco' | 'limpieza' | 'congelado';
+
 
 @Component({
   selector: 'app-articulos',
@@ -46,6 +47,7 @@ export class ArticulosComponent implements OnInit {
   isAddingProduct: boolean = false;
   selectedLanguage: string = 'es'; // Declara la propiedad aquí
   nuevoProducto: any;
+  categoriaSeleccionadaFirestore?: Categoria;
 
   constructor(
     private router: Router,
@@ -53,15 +55,7 @@ export class ArticulosComponent implements OnInit {
     private firestore: AngularFirestore,
     private translate: TranslateService, // Asegúrate de que este nombre coincida
     private productService: ProductService  // Inyecta el servicio aquí
-
-
-  ) {
-    const savedLanguage = localStorage.getItem('selectedLanguage') || 'es';
-    this.selectedLanguage = savedLanguage;
-    this.translate.setDefaultLang(this.selectedLanguage);
-    this.translate.use(this.selectedLanguage);
-
-  }
+  ) {}
 
 
   categoriaSeleccionada: string | null = null;
@@ -72,16 +66,13 @@ export class ArticulosComponent implements OnInit {
     'Seco': 'Productos_Seco'
   };
 
-  // Función para cambiar el idioma
-  changeLanguage(lang: string) {
-    this.selectedLanguage = lang; // Actualiza el idioma seleccionado
-    this.translate.setDefaultLang(lang);
-    this.translate.use(lang);
-    localStorage.setItem('selectedLanguage', lang);
-    if (this.recognition) {
-      this.recognition.lang = lang;
-    }
-  }
+  // Mapeo de categorías a nombres de colecciones en Firestore
+  categoriasFirestore: Record<Categoria, string> = {
+    'fresco': 'Productos_Fresco',
+    'seco': 'Productos_Seco',
+    'limpieza': 'Productos_Limpieza',
+    'congelado': 'Productos_Congelado'
+  };
 
   ngOnInit() {
     console.log('Component initialized');
@@ -113,29 +104,13 @@ export class ArticulosComponent implements OnInit {
 
   // Método para preguntar por la categoría usando reconocimiento de voz
   promptForCategoryVoice() {
-    Swal.fire({
-      title: 'Diga la categoría',
-      text: 'Diga la categoría en la que desea operar: Congelado, Fresco, Limpieza, o Seco.',
-      icon: 'info',
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false
-    }).then(() => {
-      // Después de que el usuario cierre el modal, inicia el reconocimiento de voz
-      this.startVoiceRecognition();
-    });
+    alert('Diga la categoría en la que desea operar: Congelado, Fresco, Limpieza, o Seco.');
+    this.startVoiceRecognition();
   }
 
   setupVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window)) {
-      Swal.fire({
-        title: 'Error',
-        text: 'Web Speech API no está disponible en este navegador.',
-        icon: 'error',
-        timer: 1000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert('Web Speech API no está disponible en este navegador.');
       return;
     }
 
@@ -166,13 +141,7 @@ export class ArticulosComponent implements OnInit {
     const categorias = ['congelado', 'fresco', 'limpieza', 'seco'];
     if (categorias.includes(command)) {
       this.categoriaSeleccionada = this.baseDatosCategorias[command.charAt(0).toUpperCase() + command.slice(1)];
-      Swal.fire({
-        title: 'Categoría seleccionada',
-        text: `Categoría seleccionada: ${command.charAt(0).toUpperCase() + command.slice(1)}`,
-        timer: 1000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert(`Categoría seleccionada: ${command.charAt(0).toUpperCase() + command.slice(1)}`);
       this.activateCamera(); // Activar la cámara después de seleccionar la categoría
     } else if (command.includes('agregar')) {
       this.action = 'agregar';
@@ -186,26 +155,18 @@ export class ArticulosComponent implements OnInit {
       this.action = 'eliminar';
       this.isProcessing = true;
       this.handleEliminar();
-    } else if (command.includes('cambiar')) {
+    } /*else if (command.includes('cambiar')) {
       this.cambiarBaseDatos();
     } else if (command.includes('continuar')) {
       this.continuarEnBaseDatos();
     } else if (command.includes('salir')) {
       this.volver(); // Llamar a la función volver para salir
-    } else {
-      Swal.fire({
-        title: 'Comando no reconocido.',
-        text: `Intenta decir "agregar", "retirar", "eliminar".`,
-        timer: 1000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+    }*/ else {
+      alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar".');
       this.router.navigate(['/main-site']);
-    } 
+    }
     this.stopVoiceRecognition();
   }
-
-
 
   stopVoiceRecognition() {
     if (this.recognition) {
@@ -214,54 +175,29 @@ export class ArticulosComponent implements OnInit {
   }
 
   activateCamera() {
-    console.log('print');
-    // Solo activa la cámara si la categoría ya ha sido seleccionada
+    // Verificar permiso de la cámara y activarla
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(() => {
           this.hasPermission = true;
-          setTimeout(() => {
-            Swal.fire({
-              title: 'Cámara activada.',
-              text: `Escanee un código.`,
-              timer: 2000,
-              timerProgressBar: true,
-              showConfirmButton: false
-            });
-          }, 1000)
+          alert('Cámara activada. Escanee un código.');
         })
         .catch(() => {
           this.hasPermission = false;
-          Swal.fire({
-            title: 'Permiso para acceder a la cámara no concedido.',            
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-          });
+          alert('Permiso para acceder a la cámara no concedido.');
         });
     }
   }
-
 
   onCodeResult(result: string) {
     if (!this.isProcessing) {
       this.isProcessing = true;
       this.scannedResult = result;
       if (this.hasPermission) {
-        Swal.fire({
-          title: 'Código QR detectado.',
-          text: 'Deseas agregar, retirar o eliminar el producto?',
-          timer: 2000,
-          timerProgressBar: true
-        });
+        alert('Código QR detectado. ¿Deseas agregar, retirar, eliminar el producto?');
         this.startVoiceRecognition();
       } else {
-        Swal.fire({
-          title: 'Permiso para acceder a la cámara no concedido.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('Permiso para acceder a la cámara no concedido.');
       }
     }
   }
@@ -279,73 +215,107 @@ export class ArticulosComponent implements OnInit {
 
   handleAgregar() {
     if (this.scannedResult && !this.isAddingProduct) {
-      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
-        .snapshotChanges()
-        .pipe(
-          map(actions => actions.map(a => {
-            const data = a.payload.doc.data() as Producto;
-            const docId = a.payload.doc.id;
-            return { ...data, docId };
-          })),
-          take(1)
-        )
-        .subscribe((productos: (Producto & { docId: string })[]) => {
-          if (productos.length === 0) {
-            this.isAddingProduct = true;
-            // Aquí se realiza la solicitud a la API si no existe el producto en la base de datos local
-            this.productService.getProductByBarcode(this.scannedResult!)
-              .subscribe(response => {
-                if (response && response.product) {
-                  const productoDeApi = response.product;
-                  console.log(productoDeApi);  // Inspecciona el objeto producto
-                  const descripcion = productoDeApi.product_name || '';
-                  const establecimiento = productoDeApi.stores || '';
-                  const precio = productoDeApi.price_value || productoDeApi.unit_price || 0; // Si la API proporciona el precio
+      this.isAddingProduct = true;
+      console.log('Categoría seleccionada:', this.categoriaSeleccionadaFirestore);
 
-                  const nuevoProducto: Producto = {
-                    descripcion,
-                    establecimiento,
-                    precio,
-                    cantidadStock: 0,  // Se actualiza después de que el usuario ingrese la cantidad comprada
-                    codigo: this.scannedResult!,
-                    id: Date.now(),
-                    fechaCreacion: new Date()
-                  };
+      // Asegúrate de que la categoría seleccionada sea válida
+      if (!this.categoriaSeleccionadaFirestore || !this.categoriasFirestore.hasOwnProperty(this.categoriaSeleccionadaFirestore)) {
+        alert('Categoría seleccionada no válida.');
+        this.isProcessing = false;
+        this.isAddingProduct = false;
+        return;
+      }
 
-                  // Si la descripción y el establecimiento están vacíos, solicita los detalles manualmente
-                  if (!descripcion || !establecimiento) {
-                    this.promptForNewProductDetails(nuevoProducto);
-                  } else {
-                    // Si la descripción y el establecimiento están completos, solicita la cantidad
-                    this.promptForQuantity(nuevoProducto);
-                  }
-                } else {
-                  // Si no se encuentra en la API, solicita los detalles manualmente
-                  this.promptForNewProductDetails();
+      const categoriaFirestore = this.categoriasFirestore[this.categoriaSeleccionadaFirestore];
+
+      const verificarExistenciaEnTodasLasBases = (codigo: string): Observable<{ existe: boolean, nombre: string, categoria: string } | null> => {
+        const categorias = Object.entries(this.categoriasFirestore);
+        const verificaciones = categorias.map(([categoria, coleccion]) =>
+          this.firestore.collection(coleccion, ref => ref.where('codigo', '==', codigo))
+            .snapshotChanges()
+            .pipe(
+              map(actions => {
+                if (actions.length > 0) {
+                  const data = actions[0].payload.doc.data() as Producto;
+                  return { existe: true, nombre: data.descripcion, categoria };
                 }
-              });
-          } else if (productos.length > 0) {
-            const producto = productos[0];
-            Swal.fire({
-              title: 'Producto existente.',
-              timer: 2000,
-              timerProgressBar: true,
-              showConfirmButton: false
-            });
-            this.promptForQuantity(producto);
+                return null;
+              }),
+              take(1)
+            )
+        );
+
+        return forkJoin(verificaciones).pipe(
+          map(resultados => resultados.find(resultado => resultado !== null) || null)
+        );
+      };
+
+      verificarExistenciaEnTodasLasBases(this.scannedResult)
+        .subscribe((resultado) => {
+          if (resultado) {
+            alert(`El producto ${resultado.nombre} ya existe en la base de datos ${resultado.categoria}. No se puede agregar.`);
+            this.isProcessing = false;
+            this.isAddingProduct = false;
+            return;
+          } else {
+            if (categoriaFirestore) {
+              this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
+                .snapshotChanges()
+                .pipe(
+                  map(actions => actions.map(a => {
+                    const data = a.payload.doc.data() as Producto;
+                    const docId = a.payload.doc.id;
+                    return { ...data, docId };
+                  })),
+                  take(1)
+                )
+                .subscribe((productos: (Producto & { docId: string })[]) => {
+                  if (productos.length === 0) {
+                    this.productService.getProductByBarcode(this.scannedResult!)
+                      .subscribe(response => {
+                        if (response && response.product) {
+                          const productoDeApi = response.product;
+                          const descripcion = productoDeApi.product_name || '';
+                          const establecimiento = productoDeApi.stores || '';
+                          const precio = productoDeApi.price_value || productoDeApi.unit_price || 0;
+
+                          const nuevoProducto: Producto = {
+                            descripcion,
+                            establecimiento,
+                            precio,
+                            cantidadStock: 0,
+                            codigo: this.scannedResult!,
+                            id: Date.now(),
+                            fechaCreacion: new Date()
+                          };
+
+                          if (!descripcion || !establecimiento) {
+                            this.promptForNewProductDetails(nuevoProducto);
+                          } else {
+                            this.promptForQuantity(nuevoProducto);
+                          }
+                        } else {
+                          this.promptForNewProductDetails();
+                        }
+                      });
+                  } else {
+                    const producto = productos[0];
+                    alert('Producto existente');
+                    this.promptForQuantity(producto);
+                  }
+                  this.isProcessing = false;
+                });
+            } else {
+              alert('Categoría seleccionada no válida.');
+              this.isProcessing = false;
+            }
           }
-          this.isProcessing = false;
         });
     } else {
-      Swal.fire({
-        title: 'No se ha detectado ningún código.',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert('No se ha detectado ningún código.');
+      this.isProcessing = false;
     }
   }
-
 
   handleRetirar() {
     if (this.scannedResult) {
@@ -364,22 +334,12 @@ export class ArticulosComponent implements OnInit {
             const producto = productos[0];
             this.promptForRetirarCantidad(producto);
           } else {
-            Swal.fire({
-              title: 'Producto no encontrado.',
-              timer: 2000,
-              timerProgressBar: true,
-              showConfirmButton: false
-            });
+            alert('Producto no encontrado.');
             this.isProcessing = false;
           }
         });
     } else {
-      Swal.fire({
-        title: 'No se ha detectado ningún código.',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert('No se ha detectado ningún código.');
       this.isProcessing = false;
     }
   }
@@ -404,51 +364,25 @@ export class ArticulosComponent implements OnInit {
               fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro
             })
             .then(() => {
-              Swal.fire({
-                title: 'Cantidad retirada.',
-                timer: 2000,
-                timerProgressBar: true,
-                showConfirmButton: false
-              });
+              alert('Cantidad retirada');
               this.isProcessing = false;
-              this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
             })
             .catch(error => {
-              Swal.fire({
-                title: 'Error al retirar cantidad: ',
-                timer: 2000,
-                timerProgressBar: true,
-                showConfirmButton: false
-              });
+              console.error('Error al retirar cantidad: ', error);
               this.scannedResult = null;
               this.isProcessing = false;
             });
         } else {
-          Swal.fire({
-            title: 'No hay suficiente cantidad en stock.',
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-          });
+          alert('No hay suficiente cantidad en stock.');
           this.scannedResult = null;
           this.isProcessing = false;
         }
       } else {
-        Swal.fire({
-          title: 'Cantidad no válida.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('Cantidad no válida.');
         this.isProcessing = false;
       }
     } else {
-      Swal.fire({
-        title: 'Operación cancelada.',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert('Operación cancelada.');
       this.isProcessing = false;
     }
   }
@@ -480,15 +414,9 @@ export class ArticulosComponent implements OnInit {
                 fechaUltimaCompra
               })
               .then(() => {
-                Swal.fire({
-                  title: 'Producto actualizado con el nuevo precio y cantidad.',
-                  timer: 2000,
-                  timerProgressBar: true,
-                  showConfirmButton: false
-                });
+                alert('Producto actualizado con el nuevo precio y cantidad');
                 this.scannedResult = null;
                 this.isProcessing = false;
-                this.preguntarCambioDeBaseDatos();
               })
               .catch(error => {
                 console.error('Error al actualizar producto: ', error);
@@ -501,15 +429,9 @@ export class ArticulosComponent implements OnInit {
             this.firestore.collection(this.categoriaSeleccionada!)
               .add(producto)
               .then(() => {
-                Swal.fire({
-                  title: 'Producto agregado con el nuevo precio y cantidad.',
-                  timer: 2000,
-                  timerProgressBar: true,
-                  showConfirmButton: false
-                });
+                alert('Producto actualizado con el nuevo precio y cantidad');
                 this.scannedResult = null;
                 this.isProcessing = false;
-                this.preguntarCambioDeBaseDatos();
               })
               .catch(error => {
                 console.error('Error al agregar producto: ', error);
@@ -517,32 +439,16 @@ export class ArticulosComponent implements OnInit {
               });
           }
         } else {
-          Swal.fire({
-            title: 'Cantidad no válida.',
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-          });
+          alert('Cantidad no válida.');
           this.isProcessing = false;
         }
       } else {
         // El usuario canceló la entrada de cantidad
-        Swal.fire({
-          title: 'Operación cancelada.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('Operación cancelada.');
         this.isProcessing = false;
       }
     } else {
       // El usuario canceló la entrada de precio o ingresó un valor no válido
-      Swal.fire({
-        title: 'Operación cancelada.',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
       this.isProcessing = false;
     }
   }
@@ -568,13 +474,7 @@ export class ArticulosComponent implements OnInit {
       if (!descripcion) {
         descripcion = null;
       } else if (!soloLetras(descripcion)) {
-        Swal.fire({
-          title: 'La descripción solo puede contener letras.',
-          text: 'Por favor, inténtelo nuevamente.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('La descripción solo puede contener letras.Por favor, inténtelo nuevamente');
         descripcion = null;
       }
     }
@@ -583,23 +483,8 @@ export class ArticulosComponent implements OnInit {
     while (!establecimiento) {
       establecimiento = prompt('Ingrese el establecimiento:', '');
       if (!establecimiento) {
-      } else if (!soloLetras(descripcion)) {
-        Swal.fire({
-          title: 'El establecimiento es obligatorio.',
-          text: 'Por favor, inserte un valor.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
-        establecimiento = null;
       } else if (!soloLetras(establecimiento)) {
-        Swal.fire({
-          title: 'El establecimiento solo puede contener letras.',
-          text: 'Por favor, inténtelo nuevamente.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('El establecimiento solo puede contener letras.Por favor, inténtelo nuevamente');
         establecimiento = null;
       }
     }
@@ -616,13 +501,7 @@ export class ArticulosComponent implements OnInit {
         }
       }
       if (isNaN(precioNumerico) || precioNumerico <= 0) {
-        Swal.fire({
-          title: 'El precio no es válido.',
-          text: 'Debe ser un número mayor a 0.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('El precio no es válido.Debe ser un número mayor a 0');
         precioNumerico = null;  // Resetear para asegurar que se vuelva a solicitar
       }
     }
@@ -639,13 +518,7 @@ export class ArticulosComponent implements OnInit {
         }
       }
       if (isNaN(cantidadComprada) || cantidadComprada <= 0) {
-        Swal.fire({
-          title: 'La cantidad no es válida.',
-          text: 'Debe ser un número mayor a 0.',
-          timer: 2000,
-          timerProgressBar: true,
-          showConfirmButton: false
-        });
+        alert('La cantidad no es válida.Debe ser un número mayor a 0');
         cantidadComprada = null;  // Resetear para asegurar que se vuelva a solicitar
       }
     }
@@ -665,41 +538,24 @@ export class ArticulosComponent implements OnInit {
       this.firestore.collection(this.categoriaSeleccionada!)
         .add(nuevoProducto)
         .then(() => {
-          Swal.fire({
-            title: 'Producto agregado',
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-          });
+          alert('Producto agregado');
           this.scannedResult = null;
           this.isAddingProduct = false;
-          this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
         })
         .catch(error => {
           console.error('Error al agregar producto: ', error);
           this.isAddingProduct = false;
         });
     } else {
-      Swal.fire({
-        title: 'Debe completar todos los campos',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert('Debe completar todos los campos');
       this.isAddingProduct = false;
     }
   }
 
-
   cancelarOperacion() {
     this.isProcessing = false;
     this.scannedResult = null;
-    Swal.fire({
-      title: 'Operación cancelada',
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false
-    });
+    alert('Operación cancelada.');
   }
 
   eliminarProducto(producto: Producto & { docId: string }) {
@@ -708,15 +564,9 @@ export class ArticulosComponent implements OnInit {
       this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
         .delete()
         .then(() => {
-          Swal.fire({
-            title: 'Producto eliminado',
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-          });
+          alert('Producto eliminado');
           this.scannedResult = null;
           this.isProcessing = false;
-          this.preguntarCambioDeBaseDatos(); // Pregunta si desea cambiar de base de datos
         })
         .catch(error => {
           console.error('Error al eliminar producto: ', error);
@@ -745,46 +595,13 @@ export class ArticulosComponent implements OnInit {
             const producto = productos[0];
             this.eliminarProducto(producto);
           } else {
-            Swal.fire({
-              title: 'Producto no encontrado',
-              timer: 2000,
-              timerProgressBar: true,
-              showConfirmButton: false
-            });
+            alert('Producto no encontrado.');
             this.isProcessing = false;
           }
         });
     } else {
-      Swal.fire({
-        title: 'No se ha detectado ningún código',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      });
+      alert('No se ha detectado ningún código.');
       this.isProcessing = false;
     }
-  }
-
-  preguntarCambioDeBaseDatos() {
-    const deseaCambiar = confirm('¿Desea cambiar de base de datos? (Aceptar para cambiar, Cancelar para continuar en la misma)');
-    if (deseaCambiar) {
-      this.cambiarBaseDatos();
-    } else {
-      this.continuarEnBaseDatos();
-    }
-  }
-
-  cambiarBaseDatos() {
-    this.promptForCategoryVoice();
-  }
-
-  continuarEnBaseDatos() {
-    Swal.fire({
-      title: 'Continuando en la base de datos actual: ',
-      text: '${ this.categoriaSeleccionada } ',
-      timer: 2000,
-      timerProgressBar: true,
-      showConfirmButton: false
-    });
   }
 }
