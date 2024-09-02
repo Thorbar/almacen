@@ -10,5 +10,9 @@ npm install @angular/fire@latest firebase
 ng generate service services/product
 npm install @angular/material @angular/cdk
 ng generate component confirm-dialog
+ng generate component articulos-tiquet
+ng generate service services/firestore
+npm install tesseract.js@latest
+
 
 
