@@ -113,5 +113,10 @@
   "INVALID_DOB": "The provided date of birth is not valid.",
   "AGE_REQUIREMENT_NOT_MET": "You must be at least 10 years old to register.",
   "ALERT_EMAIL_PRINCIPAL_NOT_FOUND": "The principal email field is empty. Please provide it.",
-  "CREATE_USER_CONFIRMATION_MESSAGE": "Do you want to create the user {{username}} to manage the database?"
+  "CREATE_USER_CONFIRMATION_MESSAGE": "Do you want to create the user {{username}} to manage the database?",
+  "FORGOT_PASSWORD": "Forgot your password?",
+  "RESET_EMAIL_SENT": "Password reset email sent.",
+  "RESET_EMAIL_FAILED": "Failed to send password reset email.",
+  "ENTER_EMAIL_OR_USERNAME": "Please enter your email or username.",
+  "INVALID_EMAIL": "Invalid email."
 }

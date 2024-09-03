@@ -4,6 +4,8 @@
   <input [(ngModel)]="password" type="password" placeholder="Password" required>
   <button (click)="login()">{{ 'LOGIN' | translate }}</button>
   <button (click)="createUser()">{{ 'CREATE_USER' | translate }}</button>
+
+  <a href="#" (click)="recoverPassword()">{{ 'FORGOT_PASSWORD' | translate }}</a>
 </div>
 
 <!-- Spinner de carga -->

@@ -113,6 +113,11 @@
   "INVALID_DOB": "La data de naixement proporcionada no és vàlida.",
   "AGE_REQUIREMENT_NOT_MET": "Has de tenir almenys 10 anys per registrar-te.",
   "ALERT_EMAIL_PRINCIPAL_NOT_FOUND": "El camp de correu electrònic principal està buit. Si us plau, proporcioneu-lo.",
-  "CREATE_USER_CONFIRMATION_MESSAGE": "Vols crear l'usuari {{username}} per gestionar la base de dades?"
+  "CREATE_USER_CONFIRMATION_MESSAGE": "Vols crear l'usuari {{username}} per gestionar la base de dades?",
+  "FORGOT_PASSWORD": "Has oblidat la teva contrasenya?",
+  "RESET_EMAIL_SENT": "Correu per restablir la contrasenya enviat.",
+  "RESET_EMAIL_FAILED": "Error en enviar el correu per restablir la contrasenya.",
+  "ENTER_EMAIL_OR_USERNAME": "Si us plau, introdueix el teu correu electrònic o nom d'usuari.",
+  "INVALID_EMAIL": "Correu electrònic no vàlid."
 
 }

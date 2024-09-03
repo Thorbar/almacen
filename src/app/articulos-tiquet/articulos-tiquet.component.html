@@ -24,6 +24,14 @@
     </li>
   </ul>
 </div>
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+  <p>Subiendo artículos a la base de datos...</p>
+</div>
+
+<div *ngIf="!isLoading && successMessage">
+  <p>{{ successMessage }}</p>
+</div>
 
 <!-- Tu código HTML existente -->
 <!-- Botón de Volver -->

@@ -115,6 +115,10 @@
   "INVALID_DOB": "La fecha de nacimiento proporcionada no es válida.",
   "AGE_REQUIREMENT_NOT_MET": "Debes tener al menos 10 años para registrarte.",
   "ALERT_EMAIL_PRINCIPAL_NOT_FOUND": "Email principal vacio, eso indica que usted es el primer usuario que se registra en su domicilio. /n Se le creará una base de datos nueva",
-  "CREATE_USER_CONFIRMATION_MESSAGE": "¿Quieres crear el usuario {{ data.username }} para gestionar la base de datos?"
-
+  "CREATE_USER_CONFIRMATION_MESSAGE": "¿Quieres crear el usuario {{ data.username }} para gestionar la base de datos?",
+  "FORGOT_PASSWORD": "¿Olvidaste tu contraseña?",
+  "RESET_EMAIL_SENT": "Correo para restablecer la contraseña enviado.",
+  "RESET_EMAIL_FAILED": "Error al enviar el correo para restablecer la contraseña.",
+  "ENTER_EMAIL_OR_USERNAME": "Por favor, ingrese su correo electrónico o nombre de usuario.",
+  "INVALID_EMAIL": "Correo electrónico no válido."
 }

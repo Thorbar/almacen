@@ -1,98 +1,111 @@
 import { Injectable } from '@angular/core';
-import { AngularFirestore, AngularFirestoreCollection, DocumentReference, DocumentData } from '@angular/fire/compat/firestore'; // Asegúrate de tener la librería de Firebase instalada
-import { Observable } from 'rxjs';
-
-interface TicketItem {
-  description: string;
-  quantity: number;
-  price: number;
-}
+import { AngularFirestore, AngularFirestoreCollection, DocumentData } from '@angular/fire/compat/firestore';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirestoreService {
 
-  private collections = [
-    'Productos_Congelado',
-    'Productos_Fresco',
-    'Productos_Seco',
-    'Productos_Limpieza',
-    'Productos_Tiquet' // Añadido para productos que no se encuentran en las colecciones anteriores
-  ];
+  private collections: { [key: string]: AngularFirestoreCollection<DocumentData> };
 
-  constructor(private firestore: AngularFirestore) { }
+  constructor(private firestore: AngularFirestore) {
+    this.collections = this.initializeCollections();
+  }
+
+  private initializeCollections(): { [key: string]: AngularFirestoreCollection<DocumentData> } {
+    return {
+      congelado: this.firestore.collection('Productos_Congelado'),
+      fresco: this.firestore.collection('Productos_Fresco'),
+      limpieza: this.firestore.collection('Productos_Limpieza'),
+      tiquet: this.firestore.collection('Productos_Tiquet'),
+      seco: this.firestore.collection('Productos_Seco'),
+    };
+  }
 
   async checkIfItemExists(description: string): Promise<any> {
-    try {
-      const collectionRef = this.getCollectionByDescription(description);
+    for (const [key, collectionRef] of Object.entries(this.collections)) {
+      console.log(`Buscando "${description}" en la colección "${key}"`);
+
       const snapshot = await collectionRef.ref.where('descripcion', '==', description).limit(1).get();
 
       if (!snapshot.empty) {
         const doc = snapshot.docs[0];
-        return { exists: true, id: doc.id, data: doc.data() };
-      } else {
-        return { exists: false };
+        console.log(`Artículo encontrado en la colección "${key}": Documento ID: ${doc.id}`);
+        return { exists: true, id: doc.id, collectionRef: collectionRef, itemDoc: doc };
       }
-    } catch (error) {
-      console.error('Error al verificar si el artículo existe:', error);
-      throw error;
     }
+
+    console.log(`Artículo "${description}" no encontrado en ninguna colección.`);
+    return { exists: false, collectionRef: this.collections['tiquet'] };
   }
-  getCollectionByDescription(description: string): AngularFirestoreCollection<DocumentData> {
-    if (description.toLowerCase().includes('congelado')) {
-      return this.firestore.collection('Productos_Congelado');
-    } else if (description.toLowerCase().includes('fresco')) {
-      return this.firestore.collection('Productos_Fresco');
-    } else if (description.toLowerCase().includes('limpieza')) {
-      return this.firestore.collection('Productos_Limpieza');
+
+  async updateOrCreateItem(description: string, quantity: number, price: number, codigo: string, establecimiento: string, fechaUltimaCompra: Date, fechaUltimoRetiro: Date) {
+    const result = await this.checkIfItemExists(description);
+
+    if (result.exists && result.collectionRef && result.itemDoc) {
+      await this.updateItem(result.collectionRef, result.itemDoc.id, quantity, price, codigo, establecimiento, fechaUltimaCompra, fechaUltimoRetiro);
     } else {
-      return this.firestore.collection('Productos_Seco');
+      await this.createItem(description, quantity, price, codigo, establecimiento, fechaUltimaCompra, fechaUltimoRetiro);
     }
   }
 
+  async updateItem(
+    collectionRef: AngularFirestoreCollection<DocumentData>,
+    docId: string,
+    quantity: number,
+    price: number,
+    codigo: string,
+    establecimiento: string,
+    fechaUltimaCompra: Date,
+    fechaUltimoRetiro: Date
+  ) {
+    try {
+      const docRef = collectionRef.doc(docId);
+      const docSnapshot = await docRef.get().toPromise();
+      const existingData = docSnapshot?.data() || {};
 
-  /* async checkIfItemExists(description: string): Promise<{ exists: boolean, collection: string | null, itemDoc: any | null }> {
- 
-     for (const collectionName of this.collections) {
-       const itemsCollection = this.firestore.collection(collectionName, ref => ref.where('descripcion', '==', description));
-       const snapshot = await itemsCollection.get().toPromise();
- 
-       if (!snapshot.empty) {
-         return { exists: true, collection: collectionName, itemDoc: snapshot.docs[0] };
-       }
-     }
-     return { exists: false, collection: null, itemDoc: null };
-   }*/
+      const newQuantity = (existingData['cantidadStock'] || 0) + quantity;
 
-  async updateItem(collection: string, itemDoc: any, quantity: number, price: number): Promise<void> {
-    const docRef = itemDoc.ref;
-    const existingData = itemDoc.data();
-    const updatedData = {
-      cantidadStock: (existingData.cantidadStock || 0) + quantity,
-      precio: price,
-      fechaUltimaCompra: new Date()
-    };
-    await docRef.update(updatedData);
-    console.log(`Artículo actualizado en ${collection}:`, updatedData);
+      await docRef.update({
+        cantidadStock: newQuantity,
+        precio: price,
+        codigo: codigo,
+        establecimiento: establecimiento,
+        fechaUltimaCompra: fechaUltimaCompra,
+        fechaUltimoRetiro: fechaUltimoRetiro,
+        fechaCreacion: existingData['fechaCreacion'] || new Date() // Mantener la fecha de creación original
+      });
+      console.log(`Artículo actualizado: ${docId}, Nueva cantidad: ${newQuantity}, Precio: ${price}`);
+    } catch (error) {
+      console.error('Error al actualizar el artículo:', error);
+    }
   }
 
-  async createItem(item: any): Promise<DocumentReference<DocumentData>> {
-    const newItem = {
-      descripcion: item.description,
-      cantidadStock: item.quantity,
-      precio: item.price,
-      establecimiento: 'Desconocido', // Puedes cambiar esto según sea necesario
-      fechaCreacion: new Date(),
-      fechaUltimaCompra: new Date(),
-      fechaUltimoRetiro: null,
-      id: this.firestore.createId(), // Puedes modificar la lógica para generar IDs si es necesario
-      codigo: '' // Si no hay código disponible
-    };
+  async createItem(
+    description: string,
+    quantity: number,
+    price: number,
+    codigo: string,
+    establecimiento: string,
+    fechaUltimaCompra: Date,
+    fechaUltimoRetiro: Date
+  ) {
+    try {
+      const newItem = {
+        descripcion: description,
+        cantidadStock: quantity,
+        precio: price,
+        codigo: codigo,
+        establecimiento: establecimiento,
+        fechaCreacion: new Date(),
+        fechaUltimaCompra: fechaUltimaCompra,
+        fechaUltimoRetiro: fechaUltimoRetiro,
+      };
 
-    const collectionRef = this.firestore.collection('Productos_Tiquet');
-    const docRef = await collectionRef.add(newItem);
-    console.log('Nuevo artículo creado en Productos_Tiquet:', newItem);
-    return docRef as DocumentReference<DocumentData>;
+      await this.collections['tiquet'].add(newItem);
+      console.log('Artículo creado en la colección Productos_Tiquet:', newItem);
+    } catch (error) {
+      console.error('Error al crear el artículo:', error);
+    }
   }
 }

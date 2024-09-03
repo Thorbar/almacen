@@ -1,7 +1,7 @@
-import { Component, ChangeDetectorRef  } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -119,5 +119,44 @@ export class LoginComponent {
 
   createUser() {
     this.router.navigate(['crear-usuario']);
+  }
+
+  // Nueva función para recuperar contraseña
+  recoverPassword() {
+    const auth = getAuth();
+    const emailToRecover = this.email || this.usernameToEmail(this.username);
+    
+    if (!emailToRecover) {
+      alert(this.translate.instant('ENTER_EMAIL_OR_USERNAME'));
+      return;
+    }
+
+    sendPasswordResetEmail(auth, emailToRecover)
+      .then(() => {
+        alert(this.translate.instant('RESET_EMAIL_SENT'));
+      })
+      .catch((error) => {
+        let errorMessage = '';
+        switch (error.code) {
+          case 'auth/user-not-found':
+            errorMessage = this.translate.instant('USER_NOT_FOUND');
+            break;
+          case 'auth/invalid-email':
+            errorMessage = this.translate.instant('INVALID_EMAIL');
+            break;
+          default:
+            errorMessage = this.translate.instant('RESET_EMAIL_FAILED');
+            break;
+        }
+        alert(errorMessage);
+      });
+  }
+
+  // Método opcional para convertir el nombre de usuario en un correo electrónico (puedes personalizar esto)
+  usernameToEmail(username: string): string | null {
+    if (username === 'thorbar') {
+      return 'davidribe86@gmail.com';
+    }
+    return null; // Agrega más lógica si tienes más usuarios
   }
 }

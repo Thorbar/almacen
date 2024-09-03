@@ -1,15 +1,18 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router'; // Importa el Router
-
+import { Router } from '@angular/router';
 import Tesseract from 'tesseract.js';
-import { createWorker, Worker } from 'tesseract.js'; // Importamos el tipo Worker
+import { createWorker } from 'tesseract.js';
 import { FirestoreService } from '../services/firestore.service';
-
+import { ProductService } from '../services/product.service';
 
 interface TicketItem {
   description: string;
   quantity: number;
   price: number;
+  barcode?: string;
+  establecimiento?: string;
+  fechaUltimaCompra?: Date;
+  fechaUltimoRetiro?: Date;
 }
 
 @Component({
@@ -21,13 +24,14 @@ export class ArticulosTiquetComponent {
   ticketImage: string | ArrayBuffer | null = null;
   ocrResult: string = '';
   items: TicketItem[] = [];
+  isLoading: boolean = false;
+  successMessage: string = ''; // Nuevo campo para almacenar el mensaje de éxito
 
-  constructor(private firestoreService: FirestoreService,
+  constructor(
+    private firestoreService: FirestoreService,
+    private productService: ProductService,
     private router: Router
   ) { }
-
-
-
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
@@ -40,41 +44,20 @@ export class ArticulosTiquetComponent {
       reader.readAsDataURL(file);
     }
   }
-  /*
-    processTicket() {
-      if (this.ticketImage) {
-        console.log('Procesando tiquet con OCR...');
-        Tesseract.recognize(this.ticketImage as string, 'eng', {
-          logger: m => console.log(m)
-        })
-        .then(({ data: { text } }) => {
-          this.ocrResult = text;
-          console.log('Resultado OCR:', text);
-          // Aquí podemos proceder a procesar el texto extraído.
-        })
-        .catch((err) => {
-          console.error('Error durante el proceso de OCR:', err);
-        });
-      } else {
-        console.log('No se ha seleccionado ninguna imagen.');
-      }
-    }*/
 
   async processTicket() {
     if (!this.ticketImage) {
       console.log('No se ha cargado ninguna imagen de tiquet.');
       return;
     }
-
+    this.isLoading = true; // Mostrar spinner
     try {
-      const worker = await createWorker('spa'); // Esperamos a que el worker sea creado
+      const worker = await createWorker('spa');
       await worker.reinitialize();
-      // Convertir ticketImage a HTMLImageElement o Canvas
       const image = await this.convertToImage(this.ticketImage);
       const { data: { text } } = await worker.recognize(image);
 
       this.ocrResult = text;
-
       console.log('Texto del tiquet:', this.ocrResult);
 
       await worker.terminate(); // Terminamos el worker
@@ -83,7 +66,7 @@ export class ArticulosTiquetComponent {
 
     } catch (error) {
       console.error('Error procesando el OCR:', error);
-    }
+    } 
   }
 
   async convertToImage(ticketImage: string | ArrayBuffer | null): Promise<HTMLImageElement> {
@@ -109,46 +92,97 @@ export class ArticulosTiquetComponent {
     });
   }
 
-  processTicketData() {
+  async processTicketData() {
     const lines = this.ocrResult.split('\n');
     this.items = [];
 
     const itemPattern = /^(\d+)\s+(.+?)\s+([\d,]+(?:\.\d{2})?)$/;
+    const establishmentPattern = /(?:Establecimiento|Lugar):\s*(.*)/i;
 
-
-    lines.forEach(line => {
-      const match = line.match(itemPattern);
-
-      if (match) {
-        console.log('Coincidencia encontrada', match);
-        const item = {
-          description: match[2].trim(), // Descripción del producto
-          quantity: parseInt(match[1], 10), // La cantidad es el primer grupo
-          price: parseFloat(match[3].replace(',', '.')) // El precio es el tercer grupo, convertir ',' a '.'
+    for (const line of lines) {
+      const itemMatch = line.match(itemPattern);
+      if (itemMatch) {
+        console.log('Coincidencia de artículo encontrada', itemMatch);
+        const item: TicketItem = {
+          description: itemMatch[2].trim(),
+          quantity: parseInt(itemMatch[1], 10),
+          price: parseFloat(itemMatch[3].replace(',', '.')),
+          establecimiento: this.extractEstablishment(lines),
+          fechaUltimaCompra: new Date(), // Fecha actual como fecha de la última compra
+          fechaUltimoRetiro: new Date()  // Fecha actual como fecha del último retiro
         };
+        await this.findBarcodeForItem(item);
+
         this.items.push(item);
       } else {
         console.log('No se encontró coincidencia en:', line);
       }
-    });
+    }
 
     console.log('Artículos encontrados:', this.items);
-    // Llamada a la función para actualizar o crear artículos en la base de datos
     this.updateDatabaseWithItems(this.items);
   }
+
+  extractEstablishment(lines: string[]): string | undefined {
+    for (const line of lines) {
+      const match = line.match(/(?:Establecimiento|Lugar):\s*(.*)/i);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    return 'Desconocido'; // Valor por defecto si no se encuentra el establecimiento
+  }
+
   async updateDatabaseWithItems(items: TicketItem[]) {
+    let successfulUploads = 0;
+
     for (const item of items) {
       try {
-        const { exists, collection, itemDoc } = await this.firestoreService.checkIfItemExists(item.description);
+        const { exists, id, collectionRef, itemDoc } = await this.firestoreService.checkIfItemExists(item.description);
 
-        if (exists && collection && itemDoc) {
-          await this.firestoreService.updateItem(collection, itemDoc, item.quantity, item.price);
+        if (exists && collectionRef && itemDoc) {
+          await this.firestoreService.updateItem(
+            collectionRef,
+            itemDoc.id,
+            item.quantity,
+            item.price,
+            item.barcode || 'N/A',
+            item.establecimiento || 'Desconocido',
+            item.fechaUltimaCompra || new Date(),
+            item.fechaUltimoRetiro || new Date()
+          );
         } else {
-          await this.firestoreService.createItem(item);
+          await this.firestoreService.createItem(
+            item.description,
+            item.quantity,
+            item.price,
+            item.barcode || 'N/A',
+            item.establecimiento || 'Desconocido',
+            item.fechaUltimaCompra || new Date(),
+            item.fechaUltimoRetiro || new Date()
+          );
         }
+        successfulUploads++;
       } catch (error) {
         console.error(`Error actualizando o creando el artículo ${item.description}:`, error);
       }
+    }
+
+    this.isLoading = false; // Ocultar spinner
+    this.successMessage = `El proceso ha finalizado correctamente. Se han subido ${successfulUploads} artículos.`; // Mostrar mensaje de éxito
+  }
+
+  async findBarcodeForItem(item: TicketItem) {
+    try {
+      const response = await this.productService.searchProductsByName(item.description).toPromise();
+      const products = response?.products || [];
+
+      if (products.length > 0) {
+        const product = products[0];
+        item.barcode = product.code;
+      }
+    } catch (error) {
+      console.error(`Error buscando código de barras para ${item.description}:`, error);
     }
   }
 
