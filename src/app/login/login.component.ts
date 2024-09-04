@@ -11,7 +11,6 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class LoginComponent {
   selectedLanguage: string = 'es';
-  username: string = '';
   email: string = '';
   password: string = '';
   showWelcome = true;
@@ -56,10 +55,6 @@ export class LoginComponent {
 
     this.showWelcome = false;
     this.loading = true;
-
-    if (this.username === 'thorbar') {
-      this.email = 'davidribe86@gmail.com';
-    }
 
     signInWithEmailAndPassword(auth, this.email, this.password)
       .then((userCredential) => {
@@ -124,7 +119,7 @@ export class LoginComponent {
   // Nueva función para recuperar contraseña
   recoverPassword() {
     const auth = getAuth();
-    const emailToRecover = this.email || this.usernameToEmail(this.username);
+    const emailToRecover = this.email;
     
     if (!emailToRecover) {
       alert(this.translate.instant('ENTER_EMAIL_OR_USERNAME'));
@@ -150,13 +145,5 @@ export class LoginComponent {
         }
         alert(errorMessage);
       });
-  }
-
-  // Método opcional para convertir el nombre de usuario en un correo electrónico (puedes personalizar esto)
-  usernameToEmail(username: string): string | null {
-    if (username === 'thorbar') {
-      return 'davidribe86@gmail.com';
-    }
-    return null; // Agrega más lógica si tienes más usuarios
   }
 }

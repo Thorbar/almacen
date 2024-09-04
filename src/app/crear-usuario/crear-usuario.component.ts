@@ -7,6 +7,8 @@ import { getAuth, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } f
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { EmailConfirmDialogComponent } from '../email-confirm-dialog/email-confirm-dialog.component';
+import { User } from 'firebase/auth';
+
 
 @Component({
   selector: 'app-crear-usuario',
@@ -156,7 +158,12 @@ isDateValid(dob: string): boolean {
   return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day;
 }
 
-  async registerUser() {         
+  async registerUser() {    
+    if (this.newUser.password) {
+      console.log('entro', this.newUser.password);
+      this.showAlert(this.translate.instant('EMPTY_PASSWORD'), 'warning');
+    }
+    
 
     if (this.newUser.password !== this.newUser.confirmPassword) {
       this.showAlert(this.translate.instant('PASSWORD_MISMATCH'), 'error');      
@@ -164,30 +171,36 @@ isDateValid(dob: string): boolean {
     }    
     if (!this.newUser.username) {
       this.showAlert(this.translate.instant('EMPTY_USER'), 'warning');
+      console.log('username', this.newUser.username);
       return;
     } else if (this.newUser.username.length < 4) {
       this.showAlert(this.translate.instant('SHORT_USER'), 'warning');
       return;
     } else if (!this.newUser.password || !this.newUser.confirmPassword) {
       this.showAlert(this.translate.instant('EMPTY_PASSWORD'), 'warning');
+      console.log('password', this.newUser.username);
       return;
     } else if (!this.isPasswordValid(this.newUser.password) || !this.isPasswordValid(this.newUser.confirmPassword)) {
       this.showAlert(this.translate.instant('INVALID_PASSWORD'), 'error');
       return;
     } else if (!this.newUser.email) {
       this.showAlert(this.translate.instant('EMPTY_EMAIL'), 'warning');
+      console.log('email', this.newUser.username);
       return;
     } else if (this.newUser.email && !this.isValidEmail(this.newUser.email)) {
       this.showAlert(this.translate.instant('VALID_EMAIL'), 'warning');
       return;
     } else if (!this.newUser.firstName) {
       this.showAlert(this.translate.instant('EMPTY_NAME'), 'warning');
+      console.log('firstName', this.newUser.username);
       return;
     } else if (!this.newUser.lastName) {
       this.showAlert(this.translate.instant('EMPTY_LASTNAME'), 'warning');
+      console.log('lastName', this.newUser.username);
       return;
     } else if (!this.newUser.dob) {
       this.showAlert(this.translate.instant('EMPTY_DOB'), 'warning');
+      console.log('dob', this.newUser.username);
       return;
     } else if (!this.isDateComplete(this.newUser.dob)) {
       // Asegúrate de que la fecha de nacimiento esté completa
@@ -208,24 +221,32 @@ isDateValid(dob: string): boolean {
     }
 
    // Abrir el diálogo para confirmar el email principal
-   const confirmedEmail = await this.openEmailConfirmDialog(this.newUser.username);
+   const confirmedEmail = await this.openEmailConfirmDialog(this.newUser.username);   
 
    // Verificar si el usuario aceptó el primer diálogo
    if (confirmedEmail) {      
        // Abrir el segundo diálogo para confirmar la creación del usuario
        const confirmed = await this.openConfirmDialog(this.newUser.username);
        if (confirmed) {
+
     try {
       const auth = getAuth();
       const existingUser = await fetchSignInMethodsForEmail(auth, this.newUser.email);
+      console.log('existingUser ', existingUser);
+
 
       if (existingUser.length > 0) {
         this.showAlert(this.translate.instant('EMAIL_ALREADY_EXISTS'), 'error');
+        console.log('EMAIL_ALREADY_EXISTS ', existingUser);
         return;
       }
       // Crear usuario en Firebase Authentication
-      await createUserWithEmailAndPassword(auth, this.newUser.email, this.newUser.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, this.newUser.email, this.newUser.password);
+      console.log('userCredential ', userCredential);
+      const userId = userCredential.user.uid; // Obtener el UID del usuario
+      console.log('userId ', userId);
 
+      /*
       // Crear documento en Firestore para el proyecto
       await this.firestore.collection('projects').doc(`almacen_${this.newUser.username}`).set({
         firstName: this.newUser.firstName,
@@ -236,8 +257,14 @@ isDateValid(dob: string): boolean {
         emailPrincipal: this.newUser.emailPrincipal || null,
         createdAt: new Date()
       });
+*/
+
+      // Aquí es donde creamos el proyecto almacen dentro de su cuenta Firebase
+      await this.createUserProject(userCredential.user);
+
       
       this.showAlert(this.translate.instant('ACCOUNT_CREATED'), 'success');
+      console.log('ACCOUNT_CREATED ', userCredential.user);
       this.showRegister = false;
       this.router.navigate(['']);
       
@@ -255,4 +282,26 @@ isDateValid(dob: string): boolean {
     return;    
    }  
   }
+  async createUserProject(user: User) {
+    // Obtener una referencia a la Firestore del usuario autenticado
+    const userFirestore = this.getUserFirestore(user);
+
+    // Crear un proyecto 'almacen' dentro de la cuenta del usuario
+    await userFirestore.collection('projects').doc('almacen').set({
+        nombre: `Almacén de ${user.displayName || user.email}`,
+        descripcion: `Descripción del almacén de ${user.displayName || user.email}`,
+        creadoEn: new Date()
+    });
+}
+
+getUserFirestore(user: User): AngularFirestore {
+    // Aquí puedes obtener una instancia de Firestore para el usuario autenticado.
+    // Si Firebase está configurado correctamente en tu aplicación, la instancia de Firestore
+    // que obtienes con AngularFirestore ya está asociada con el usuario autenticado.
+    // No es necesario pasar ningún UID manualmente.
+
+    return this.firestore; // La misma instancia de AngularFirestore que usas en toda la aplicación
+}
+
+  
 }

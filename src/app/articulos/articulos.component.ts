@@ -139,8 +139,11 @@ export class ArticulosComponent implements OnInit {
 
   handleVoiceCommand(command: string) {
     const categorias = ['congelado', 'fresco', 'limpieza', 'seco'];
+
     if (categorias.includes(command)) {
-      this.categoriaSeleccionada = this.baseDatosCategorias[command.charAt(0).toUpperCase() + command.slice(1)];
+      this.categoriaSeleccionadaFirestore = command as Categoria; // Usar Categoria
+      this.categoriaSeleccionada = this.categoriasFirestore[this.categoriaSeleccionadaFirestore]
+      //this.categoriaSeleccionada = this.baseDatosCategorias[command.charAt(0).toUpperCase() + command.slice(1)];
       alert(`Categoría seleccionada: ${command.charAt(0).toUpperCase() + command.slice(1)}`);
       this.activateCamera(); // Activar la cámara después de seleccionar la categoría
     } else if (command.includes('agregar')) {
@@ -155,15 +158,9 @@ export class ArticulosComponent implements OnInit {
       this.action = 'eliminar';
       this.isProcessing = true;
       this.handleEliminar();
-    } /*else if (command.includes('cambiar')) {
-      this.cambiarBaseDatos();
-    } else if (command.includes('continuar')) {
-      this.continuarEnBaseDatos();
-    } else if (command.includes('salir')) {
-      this.volver(); // Llamar a la función volver para salir
-    }*/ else {
+    } else {
       alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar".');
-      this.router.navigate(['/main-site']);
+      //this.router.navigate(['/main-site']);
     }
     this.stopVoiceRecognition();
   }

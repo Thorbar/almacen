@@ -1,6 +1,6 @@
 <div *ngIf="showWelcome">
   <h1>Bienvenido</h1>
-  <input [(ngModel)]="username" type="text" placeholder="Username" required>
+  <input [(ngModel)]="email" type="text" placeholder="email" required>
   <input [(ngModel)]="password" type="password" placeholder="Password" required>
   <button (click)="login()">{{ 'LOGIN' | translate }}</button>
   <button (click)="createUser()">{{ 'CREATE_USER' | translate }}</button>

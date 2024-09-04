@@ -30,3 +30,27 @@ button {
         width: 6%; /* Ajusta el tamaño para móviles */
       }
   }
+
+/* Asegúrate de que el contenedor de la cámara ocupe solo la mitad superior */
+.camera-container {
+  position: relative;
+  width: 100%;
+  height: 50vh; /* Ocupa la mitad superior de la vista */
+  overflow: hidden;
+}
+
+.camera-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Estilos para el botón de volver */
+.back-button {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 10px;
+}

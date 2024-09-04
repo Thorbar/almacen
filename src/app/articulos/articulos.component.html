@@ -2,12 +2,15 @@
 <div *ngIf="hasPermission">
   <h2>{{ 'ITEM_MANAGEMENT' | translate }}</h2>
 
-  <!-- Lector QR y de códigos de barras -->
-  <zxing-scanner [device]="selectedDevice"
-                 (camerasFound)="onCamerasFound($event)"
-                 (scanSuccess)="onCodeResult($event)"
-                 [formats]="formats">
-  </zxing-scanner>
+  <!-- Contenedor para la vista de la cámara -->
+  <div class="camera-container">
+    <zxing-scanner [device]="selectedDevice"
+                   (camerasFound)="onCamerasFound($event)"
+                   (scanSuccess)="onCodeResult($event)"
+                   [formats]="formats"
+                   class="camera-view">
+    </zxing-scanner>
+  </div>
 
   <!-- Mostrar el resultado del código QR o de barras y la acción si se ha escaneado un código -->
   <div *ngIf="scannedResult && !action">
@@ -17,12 +20,5 @@
   </div>
   <video #videoElement autoplay></video>
 
-
-  <!-- Mostrar mensaje y barra de carga mientras se realiza una acción -->
-  <!--<div *ngIf="action">
-    <p>{{ action === 'agregar' ? 'Agregando producto...' : 'Retirando producto...' }}</p>
-    <progress value="50" max="100"></progress>
-  </div> -->
-  <!-- Botón para volver a la página principal -->
-  <button (click)="volver()">{{ 'RETURN' | translate }}</button>
+  <button (click)="volver()" class="back-button">{{ 'RETURN' | translate }}</button>
 </div>

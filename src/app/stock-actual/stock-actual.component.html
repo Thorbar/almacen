@@ -8,8 +8,8 @@
   <button (click)="changeCollection('Productos_Limpieza')">{{ 'CLEAN' | translate }}</button>
 </div>
 
-<!-- Tabla para mostrar los datos -->
- <div class="stock-table-container">
+<!-- Tabla para mostrar y editar los datos -->
+<div class="stock-table-container">
   <table class="stock-table">
     <thead>
       <tr>
@@ -20,22 +20,33 @@
         <th>{{ 'STOCK' | translate }}</th>
         <th>{{ 'CREATION_DATE' | translate }}</th>
         <th>{{ 'MODIFICATION_DATE' | translate }}</th>
+        <th>{{ 'ACTIONS' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let producto of productos$ | async">
         <td>{{ producto.id }}</td>
-        <td>{{ producto.descripcion }}</td>
-        <td>{{ producto.establecimiento }}</td>
-        <td>{{ producto.precio | currency }}</td>
-        <td>{{ producto.cantidadStock }}</td>
+        <td>
+          <input [(ngModel)]="producto.descripcion" placeholder="Descripción" />
+        </td>
+        <td>
+          <input [(ngModel)]="producto.establecimiento" placeholder="Establecimiento" />
+        </td>
+        <td>
+          <input [(ngModel)]="producto.precio" placeholder="Precio" type="number" />
+        </td>
+        <td>
+          <input [(ngModel)]="producto.cantidadStock" placeholder="Stock" type="number" />
+        </td>
         <td>{{ producto.fechaCreacion | date: 'short' }}</td>
         <td>{{ producto.fechaUltimaCompra | date: 'short' }}</td>
+        <td>
+          <button (click)="saveChanges(producto)">{{ 'SAVE' | translate }}</button>
+        </td>
       </tr>
     </tbody>
   </table>
 </div>
-
 
 <!-- Botón para volver -->
 <button (click)="volver()">{{ 'RETURN' | translate }}</button>
