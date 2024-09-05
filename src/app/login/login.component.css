@@ -1,26 +1,3 @@
-/* Estilo para el fondo de la página de login */
-body {
-  background-color: #e0f7fa; /* Azul celeste suave */
-  margin: 0;
-  padding: 0;
-  min-height: 100vh; /* Asegura que cubre toda la altura de la ventana */
-}
-
-/* Contenedor principal de la app para asegurar que todo esté cubierto */
-.app-container {
-  background-color: #e0f7fa; /* Azul celeste suave */
-  min-height: 100vh;
-  overflow: hidden;
-}
-
-/* Estilos para el contenedor principal del formulario */
-.register-form {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%; /* Asegura que el formulario ocupe todo el ancho disponible */
-}
-
 /* Estilos para los campos de texto */
 input[type="text"],
 input[type="email"],
@@ -36,25 +13,6 @@ input[type="password"] {
   width: 100%; /* Asegura que los campos ocupen el ancho disponible */
   max-width: 300px; /* Establece un ancho máximo */
   box-sizing: border-box;
-}
-
-/* Estilos para el título */
- .CreateAccount {
-  margin: 5px 0; /* Espacio alrededor del título */
-  padding-left: 40px; /* Mueve el título 10px a la derecha */
-  font-size: 34px; /* Ajusta el tamaño del texto según sea necesario */
-  color: #004d40; /* Color del texto */
- 
-
-}
-/* Estilo para la etiqueta de fecha de nacimiento */
-.Dob {
-  margin: 10px 0;
-  font-size: 16px;
-  padding-left: 50px;    
-  color: #004d40;
-  margin-top: 60px; /* Ajusta la distancia entre la etiqueta y el campo de fecha */
-
 }
 
 /* Estilos para el grupo de botones */
@@ -100,7 +58,6 @@ button.disabled:hover {
     width: 20%;
   }
   
-
   input[type="text"],
   input[type="email"],
   input[type="date"],
@@ -122,7 +79,7 @@ button.disabled:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
+  background: #e0f7fa; /* Fondo semi-transparente */
   z-index: 1000; /* Asegúrate de que esté encima del contenido */
 }
 
@@ -162,19 +119,33 @@ button.disabled:hover {
 }
 
 .language-selector {
-  position: absolute;
-  top: 25px; /* Ajusta según sea necesario */
-  left: 500px;
   display: flex;
-  gap: 10px; /* Espacio entre las banderas */
+
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
 }
 
   .language-selector img {
-    width: 5%; /* Ajusta el tamaño al 20% */
+    width: 35px; /* Ajusta el tamaño al 20% */
     height: auto;
     cursor: pointer;
     opacity: 0.5;
     transition: transform 0.3s ease;
+    
+  }
+/* Estilo para el selector */
+.language-selector select {
+    font-size: 14px;
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+  }
+  .language-selector {
+    
+    top: 20px; /* Ajusta la distancia desde la parte superior */
+    right: 30%; /* Ajusta la distancia desde el borde derecho */
   }
 
     .language-selector img.selected {
@@ -182,6 +153,7 @@ button.disabled:hover {
       transform: scale(1.1);
       border: 2px solid #007bff;
       border-radius: 50%;
+      position: absolute;
     }
 
     .language-selector img:hover {
@@ -197,5 +169,26 @@ button.disabled:hover {
 
     .language-selector img {
       width: 6%; /* Ajusta el tamaño para móviles */
+      position: absolute;
+      top: 20px; /* Ajusta la distancia desde la parte superior */
+      right: 20px; /* Ajusta la distancia desde el borde derecho */
     }
+}
+
+/* Estilos del modal */
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente */
+  z-index: 1000; /* Asegúrate de que esté encima del contenido */
+}
+
+.prova {
+  padding-left: 10px;
 }

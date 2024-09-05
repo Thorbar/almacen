@@ -118,5 +118,9 @@
   "RESET_EMAIL_SENT": "Password reset email sent.",
   "RESET_EMAIL_FAILED": "Failed to send password reset email.",
   "ENTER_EMAIL_OR_USERNAME": "Please enter your email or username.",
-  "INVALID_EMAIL": "Invalid email."
+  "INVALID_EMAIL": "Invalid email.",
+    "CONFIRM_PASSWORD_RESET": "Are you sure you want to reset your password?",
+  "SEND_EMAIL_CONFIRMATION": "An email has been sent to {{email}} to change your password.",
+  "WELCOME" : "Welcome",
+  "SCAN_TIQUET": "Scan Shopping ticket"
 }

@@ -6,6 +6,7 @@
     <div *ngIf="isConfirm" class="alert-actions">
       <button (click)="confirm()">{{ 'YES' | translate }}</button>
       <button (click)="cancel()">{{ 'NO' | translate }}</button>
+      <button *ngIf="type === 'soli'" (click)="cancel()">Aceptar</button>
     </div>
   </div>
 </div>

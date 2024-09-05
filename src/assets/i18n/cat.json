@@ -118,6 +118,10 @@
   "RESET_EMAIL_SENT": "Correu per restablir la contrasenya enviat.",
   "RESET_EMAIL_FAILED": "Error en enviar el correu per restablir la contrasenya.",
   "ENTER_EMAIL_OR_USERNAME": "Si us plau, introdueix el teu correu electrònic o nom d'usuari.",
-  "INVALID_EMAIL": "Correu electrònic no vàlid."
+  "INVALID_EMAIL": "Correu electrònic no vàlid.",
+  "CONFIRM_PASSWORD_RESET": "Esteu segur que voleu reiniciar la contrasenya?",
+  "SEND_EMAIL_CONFIRMATION": "S'ha enviat un correu electrònic a l'adreça {{email}} per canviar la contrasenya.",
+  "WELCOME": "Benvingut",
+  "SCAN_TIQUET": "Escanejar tiquet de compra"  
 
 }

@@ -1,13 +1,23 @@
+<div class = 'prova'>
 <div *ngIf="showWelcome">
-  <h1>Bienvenido</h1>
-  <input [(ngModel)]="email" type="text" placeholder="email" required>
-  <input [(ngModel)]="password" type="password" placeholder="Password" required>
-  <button (click)="login()">{{ 'LOGIN' | translate }}</button>
-  <button (click)="createUser()">{{ 'CREATE_USER' | translate }}</button>
-
-  <a href="#" (click)="recoverPassword()">{{ 'FORGOT_PASSWORD' | translate }}</a>
+  <h1>{{ 'WELCOME' | translate }}</h1>
+   <div>
+  <input [(ngModel)]="emailLogin"name="login-email" type="text" placeholder="Email" required>
 </div>
-
+  <!-- Selector de contraseña -->
+  <input [(ngModel)]="passwordLogin" type="password"  name="login-password" placeholder="Password" required>
+    <!-- Enlace para recuperar contraseña -->
+  <div>
+    <a href="#" (click)="recoverPassword()" >{{ 'FORGOT_PASSWORD' | translate }}</a>
+  </div>
+  <app-alert></app-alert>
+  <!-- Grupo de botones para login y crear usuario -->
+  <div class="button-group">
+    <button (click)="login()">{{ 'LOGIN' | translate }}</button>
+    <button (click)="createUser()">{{ 'CREATE_USER' | translate }}</button>
+  </div>
+</div>
+</div>
 <!-- Spinner de carga -->
 <div *ngIf="loading" class="loading-container">
   <div class="spinner">
@@ -16,8 +26,13 @@
   <p>{{ 'LOADING' | translate }}</p>
 </div>
 
+<!-- Selector de idioma con la bandera y el desplegable -->
 <div class="language-selector">
-  <img src="assets/es.jpg" alt="Español" (click)="changeLanguage('es')" [class.selected]="selectedLanguage === 'es'">
-  <img src="assets/cat.jpg" alt="Català" (click)="changeLanguage('cat')" [class.selected]="selectedLanguage === 'cat'">
-  <img src="assets/uk.jpg" alt="English" (click)="changeLanguage('en')" [class.selected]="selectedLanguage === 'en'">
+  <!-- Imagen de la bandera -->
+  <img [src]="currentFlag" alt="{{ selectedLanguageLabel }}" class="language-flag">
+
+  <!-- Selector de idioma -->
+  <select (change)="onLanguageChange($event)" [value]="selectedLanguage">
+    <option *ngFor="let lang of languages" [value]="lang.code">{{ lang.label }}</option>
+  </select>
 </div>

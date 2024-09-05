@@ -19,7 +19,7 @@ export class CrearUsuarioComponent {
   selectedLanguage: string = 'es';
   username: string = '';
   email: string = '';
-  password: string = '';
+  passwordRegister: string = '';
   showRegister = false;
   isSubmitDisabled: boolean = false;
   errorMessage: string = '';
@@ -31,7 +31,7 @@ export class CrearUsuarioComponent {
     dob: '',
     email: '',
     username: '',
-    password: '',
+    passwordRegister: '',
     confirmPassword: '',
     emailPrincipal: ''
   };
@@ -159,13 +159,13 @@ isDateValid(dob: string): boolean {
 }
 
   async registerUser() {    
-    if (this.newUser.password) {
-      console.log('entro', this.newUser.password);
+    if (this.newUser.passwordRegister) {
+      console.log('entro', this.newUser.passwordRegister);
       this.showAlert(this.translate.instant('EMPTY_PASSWORD'), 'warning');
     }
     
 
-    if (this.newUser.password !== this.newUser.confirmPassword) {
+    if (this.newUser.passwordRegister !== this.newUser.confirmPassword) {
       this.showAlert(this.translate.instant('PASSWORD_MISMATCH'), 'error');      
       return;    
     }    
@@ -176,11 +176,11 @@ isDateValid(dob: string): boolean {
     } else if (this.newUser.username.length < 4) {
       this.showAlert(this.translate.instant('SHORT_USER'), 'warning');
       return;
-    } else if (!this.newUser.password || !this.newUser.confirmPassword) {
+    } else if (!this.newUser.passwordRegister || !this.newUser.confirmPassword) {
       this.showAlert(this.translate.instant('EMPTY_PASSWORD'), 'warning');
       console.log('password', this.newUser.username);
       return;
-    } else if (!this.isPasswordValid(this.newUser.password) || !this.isPasswordValid(this.newUser.confirmPassword)) {
+    } else if (!this.isPasswordValid(this.newUser.passwordRegister) || !this.isPasswordValid(this.newUser.confirmPassword)) {
       this.showAlert(this.translate.instant('INVALID_PASSWORD'), 'error');
       return;
     } else if (!this.newUser.email) {
@@ -241,7 +241,7 @@ isDateValid(dob: string): boolean {
         return;
       }
       // Crear usuario en Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, this.newUser.email, this.newUser.password);
+      const userCredential = await createUserWithEmailAndPassword(auth, this.newUser.email, this.newUser.passwordRegister);
       console.log('userCredential ', userCredential);
       const userId = userCredential.user.uid; // Obtener el UID del usuario
       console.log('userId ', userId);

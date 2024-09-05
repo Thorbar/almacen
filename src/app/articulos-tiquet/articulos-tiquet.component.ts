@@ -26,12 +26,23 @@ export class ArticulosTiquetComponent {
   items: TicketItem[] = [];
   isLoading: boolean = false;
   successMessage: string = ''; // Nuevo campo para almacenar el mensaje de éxito
+  isFileUpload = false;
+  isCameraCapture = false;
 
   constructor(
     private firestoreService: FirestoreService,
     private productService: ProductService,
     private router: Router
   ) { }
+
+  selectFileMethod() {
+    this.isFileUpload = true;
+    this.isCameraCapture = false;
+  }
+  captureImageMethod() {
+    this.isFileUpload = false;
+    this.isCameraCapture = true;
+  }
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
@@ -40,6 +51,18 @@ export class ArticulosTiquetComponent {
       reader.onload = e => {
         this.ticketImage = reader.result;
         this.ocrResult = ''; // Limpiar el resultado anterior cuando se selecciona una nueva imagen
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+
+  onCameraImageSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.ticketImage = e.target.result;
       };
       reader.readAsDataURL(file);
     }

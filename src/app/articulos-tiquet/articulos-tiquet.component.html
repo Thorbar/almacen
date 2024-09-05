@@ -1,21 +1,37 @@
-<h2>Escanear Tiquet de Compra</h2>
+<h2>{{ 'SCAN_TIQUET' | translate }}</h2>
 
-<div>
-  <input type="file" (change)="onFileSelected($event)" accept="image/*">
+<!-- Contenedor para los botones de carga y captura -->
+<div class="button-container">
+  <button (click)="selectFileMethod()">Cargar Tiquet desde Archivo</button>
+  <button (click)="captureImageMethod()">Capturar Tiquet con Cámara</button>
 </div>
 
+<!-- Selección de archivo para cargar el tiquet -->
+<div *ngIf="isFileUpload">
+  <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input">
+</div>
+
+<!-- Captura de imagen con la cámara -->
+<div *ngIf="isCameraCapture">
+  <input type="file" accept="image/*" (change)="onCameraImageSelected($event)" capture="environment" class="file-input">
+</div>
+
+<!-- Vista previa del tiquet -->
 <div *ngIf="ticketImage">
   <h3>Vista previa del tiquet:</h3>
-  <img [src]="ticketImage" alt="Ticket Preview" style="max-width: 100%;">
+  <img [src]="ticketImage" alt="Ticket Preview" class="ticket-preview">
 </div>
 
-<button (click)="processTicket()">Procesar Tiquet</button>
+<!-- Botón para procesar el tiquet -->
+<button (click)="processTicket()" class="action-button">Procesar Tiquet</button>
 
+<!-- Resultado del OCR -->
 <div *ngIf="ocrResult">
   <h3>Resultado del OCR:</h3>
   <pre>{{ ocrResult }}</pre>
 </div>
 
+<!-- Artículos detectados -->
 <div *ngIf="items && items.length > 0">
   <h3>Artículos detectados:</h3>
   <ul>
@@ -24,17 +40,17 @@
     </li>
   </ul>
 </div>
+
+<!-- Spinner de carga -->
 <div *ngIf="isLoading" class="spinner-container">
   <div class="spinner"></div>
-  <p>Subiendo artículos a la base de datos...</p>
+  <p class="loading-message">Subiendo artículos a la base de datos...</p>
 </div>
 
+<!-- Mensaje de éxito -->
 <div *ngIf="!isLoading && successMessage">
   <p>{{ successMessage }}</p>
 </div>
 
-<!-- Tu código HTML existente -->
-<!-- Botón de Volver -->
-<button (click)="volverAlMain()">Volver</button>
-
-
+<!-- Botón de volver -->
+<button (click)="volverAlMain()" class="action-button">Volver</button>

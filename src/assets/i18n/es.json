@@ -120,5 +120,9 @@
   "RESET_EMAIL_SENT": "Correo para restablecer la contraseña enviado.",
   "RESET_EMAIL_FAILED": "Error al enviar el correo para restablecer la contraseña.",
   "ENTER_EMAIL_OR_USERNAME": "Por favor, ingrese su correo electrónico o nombre de usuario.",
-  "INVALID_EMAIL": "Correo electrónico no válido."
+  "INVALID_EMAIL": "Correo electrónico no válido.",
+  "CONFIRM_PASSWORD_RESET": "¿Está seguro de que desea reiniciar la contraseña?",
+  "SEND_EMAIL_CONFIRMATION": "Se ha enviado un correo electrónico a la dirección {{email}} para cambiar la contraseña.",
+  "WELCOME": "Bienvenido",
+  "SCAN_TIQUET": "Escanear tiquet de compra"
 }

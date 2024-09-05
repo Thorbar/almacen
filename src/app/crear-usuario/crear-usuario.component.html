@@ -4,9 +4,9 @@
   <input [(ngModel)]="newUser.firstName" type="text" placeholder="{{ 'FIRST_NAME' | translate }}" required>
   <input [(ngModel)]="newUser.lastName" type="text" placeholder="{{ 'LAST_NAME' | translate }}">
   <input [(ngModel)]="newUser.dob" type="date" placeholder="{{ 'DOB' | translate }}" required>
-  <input [(ngModel)]="newUser.email" type="email" placeholder="{{ 'EMAIL' | translate }}" required>
-  <input [(ngModel)]="newUser.username" type="text" placeholder="{{ 'USERNAME' | translate }}" required>
-  <input [(ngModel)]="newUser.password" type="password" placeholder="{{ 'PASSWORD' | translate }}" required>
+  <input [(ngModel)]="newUser.email" name="register-email" type="email" placeholder="{{ 'EMAIL' | translate }}" required>
+  <input [(ngModel)]="newUser.username" name="register-user" type="text" placeholder="{{ 'USERNAME' | translate }}" autocomplete="off"  required>
+  <input [(ngModel)]="newUser.passwordRegister" type="password" style="display:none" name="fakepassword" placeholder="{{ 'PASSWORD' | translate }}" autocomplete="off"  required>
   <input [(ngModel)]="newUser.confirmPassword" type="password" placeholder="{{ 'CONFIRM_PASSWORD' | translate }}" required>
   <input [(ngModel)]="newUser.emailPrincipal" type="email" placeholder="{{ 'EMAIL_PRINCIPAL' | translate }}">
   <div class="button-group">

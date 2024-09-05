@@ -6,7 +6,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
   styleUrls: ['./alert.component.css']
 })
 export class AlertComponent implements OnInit {
-  @Input() type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'test' | 'confirm' = 'test';
+  @Input() type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'test' | 'soli' | 'confirm' = 'test';
   @Input() message: string = '';
   @Output() onConfirm = new EventEmitter<void>();
   @Output() onCancel = new EventEmitter<void>();
@@ -20,7 +20,7 @@ export class AlertComponent implements OnInit {
     this.showAlert = false; // Asegúrate de que la alerta no se muestre al inicio
   }
   // Método para mostrar la alerta
-  showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'confirm') {
+  showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'confirm' | 'soli') {
     this.message = message;
     this.type = type;
     this.showAlert = true;
@@ -37,5 +37,4 @@ export class AlertComponent implements OnInit {
     this.showAlert = false;
 
   }
-
 }

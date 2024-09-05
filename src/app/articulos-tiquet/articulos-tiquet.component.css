@@ -1,21 +1,71 @@
-/* styles.css o tu archivo de estilos global */
+/* Contenedor de botones para alinearlos horizontalmente */
+.button-container {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+/* Botones de acción */
+button {
+  padding: 10px 20px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+button:focus {
+  outline: none;
+}
+
+.action-button {
+  display: block;
+  width: 150px;
+  margin: 10px auto;
+}
+
+/* Estilo para la entrada de archivos */
+.file-input {
+  display: block;
+  margin: 20px auto;
+  font-size: 16px;
+}
+
+/* Vista previa del tiquet */
+.ticket-preview {
+  max-width: 100%;
+  display: block;
+  margin: 0 auto 20px auto;
+}
+
+/* Spinner y mensaje de carga */
+.spinner-container {
+  text-align: center;
+}
+
 .spinner {
-    border: 16px solid #f3f3f3; /* Color de fondo */
-    border-top: 16px solid #3498db; /* Color del spinner */
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-    margin: 0 auto; /* Centrar el spinner */
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  .loading-message {
-    text-align: center;
-    margin-top: 20px;
-  }
-  
+  border: 16px solid #f3f3f3; /* Color de fondo */
+  border-top: 16px solid #3498db; /* Color del spinner */
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  animation: spin 2s linear infinite;
+  margin: 20px auto; /* Centrar el spinner */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-message {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 18px;
+  color: #555;
+}
