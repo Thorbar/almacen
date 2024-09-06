@@ -22,6 +22,14 @@ export class FirestoreService {
     };
   }
 
+  getOrCreateCollection(collectionName: string): AngularFirestoreCollection<DocumentData> {
+    if (!this.collections[collectionName]) {
+      this.collections[collectionName] = this.firestore.collection(`Productos_${collectionName}`);
+      console.log(`Colección creada: Productos_${collectionName}`);
+    }
+    return this.collections[collectionName];
+  }
+
   async checkIfItemExists(description: string): Promise<any> {
     for (const [key, collectionRef] of Object.entries(this.collections)) {
       console.log(`Buscando "${description}" en la colección "${key}"`);
@@ -37,16 +45,6 @@ export class FirestoreService {
 
     console.log(`Artículo "${description}" no encontrado en ninguna colección.`);
     return { exists: false, collectionRef: this.collections['tiquet'] };
-  }
-
-  async updateOrCreateItem(description: string, quantity: number, price: number, codigo: string, establecimiento: string, fechaUltimaCompra: Date, fechaUltimoRetiro: Date) {
-    const result = await this.checkIfItemExists(description);
-
-    if (result.exists && result.collectionRef && result.itemDoc) {
-      await this.updateItem(result.collectionRef, result.itemDoc.id, quantity, price, codigo, establecimiento, fechaUltimaCompra, fechaUltimoRetiro);
-    } else {
-      await this.createItem(description, quantity, price, codigo, establecimiento, fechaUltimaCompra, fechaUltimoRetiro);
-    }
   }
 
   async updateItem(
@@ -73,15 +71,15 @@ export class FirestoreService {
         establecimiento: establecimiento,
         fechaUltimaCompra: fechaUltimaCompra,
         fechaUltimoRetiro: fechaUltimoRetiro,
-        fechaCreacion: existingData['fechaCreacion'] || new Date() // Mantener la fecha de creación original
       });
       console.log(`Artículo actualizado: ${docId}, Nueva cantidad: ${newQuantity}, Precio: ${price}`);
     } catch (error) {
-      console.error('Error al actualizar el artículo:', error);
+      console.error(`Error al actualizar el artículo ${docId}:`, error);
     }
   }
 
   async createItem(
+    collectionRef: AngularFirestoreCollection<DocumentData>,
     description: string,
     quantity: number,
     price: number,
@@ -102,10 +100,10 @@ export class FirestoreService {
         fechaUltimoRetiro: fechaUltimoRetiro,
       };
 
-      await this.collections['tiquet'].add(newItem);
-      console.log('Artículo creado en la colección Productos_Tiquet:', newItem);
+      await collectionRef.add(newItem);
+      console.log(`Artículo creado en la colección Productos_${collectionRef.ref.id}:`, newItem);
     } catch (error) {
-      console.error('Error al crear el artículo:', error);
+      console.error(`Error al crear el artículo ${description}:`, error);
     }
   }
 }

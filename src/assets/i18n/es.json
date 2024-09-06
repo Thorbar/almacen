@@ -124,5 +124,19 @@
   "CONFIRM_PASSWORD_RESET": "¿Está seguro de que desea reiniciar la contraseña?",
   "SEND_EMAIL_CONFIRMATION": "Se ha enviado un correo electrónico a la dirección {{email}} para cambiar la contraseña.",
   "WELCOME": "Bienvenido",
-  "SCAN_TIQUET": "Escanear tiquet de compra"
+  "SCAN_TIQUET": "Escanear tiquet de compra",
+  "MUST_UPLOAD_IMAGE": "Debe cargar una imagen antes de procesar el tiquet.",
+  "GESTION_ARTICULOS_TIQUET": "Procesar tiquets",
+  "UPLOAD_TICKET": "Cargar Tiquet desde Archivo",
+  "CAPTURE_TICKET": "Capturar Tiquet con Cámara",
+  "SELECT_FILE": "Seleccionar archivo",
+  "NO_FILE_SELECTED": "Ningún archivo seleccionado",
+  "TICKET_PREVIEW": "Vista previa del tiquet",
+  "TICKET_PREVIEW_ALT": "Vista previa del tiquet",
+  "PROCESS_TICKET": "Procesar Tiquet",
+  "OCR_RESULT": "Resultado del OCR",
+  "DETECTED_ITEMS": "Artículos detectados",
+  "UPLOADING_ITEMS": "Subiendo artículos a la base de datos...",
+  "GO_BACK": "Volver"
+
 }

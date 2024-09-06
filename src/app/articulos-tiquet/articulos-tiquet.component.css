@@ -1,22 +1,28 @@
-/* Contenedor de botones para alinearlos horizontalmente */
+/* Contenedor de botones para alinearlos a la izquierda y moverlos 10px a la derecha */
 .button-container {
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-start;
+  margin-left: 10px; /* Mueve todo el contenedor de botones 10px a la derecha */
+  gap: 10px; /* Espacio entre botones */
   margin-bottom: 20px;
+  flex-wrap: wrap; /* Permite que los botones se envuelvan si es necesario */
 }
 
 /* Botones de acción */
 button {
   padding: 10px 20px;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 5px;
+  background-color: #f5f5dc; /* Color de fondo beige */
+  color: #004d40; /* Color de texto verde oscuro */
+  border: 1px solid #00897b; /* Borde verde */
+  border-radius: 12px; /* Borde redondeado */
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
+/* Hover para botones: cambia el fondo y el texto */
 button:hover {
-  background-color: #2980b9;
+  background-color: #00897b; /* Verde más oscuro */
+  color: #fff; /* Texto blanco */
 }
 
 button:focus {
@@ -26,13 +32,14 @@ button:focus {
 .action-button {
   display: block;
   width: 150px;
-  margin: 10px auto;
+  margin: 10px 0;
+  margin-left: 10px; /* Mueve todo el contenedor de botones 10px a la derecha */
 }
 
 /* Estilo para la entrada de archivos */
 .file-input {
   display: block;
-  margin: 20px auto;
+  margin: 20px 0;
   font-size: 16px;
 }
 
@@ -47,15 +54,19 @@ button:focus {
 .spinner-container {
   text-align: center;
 }
+.action-container {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* Ajusta la separación entre el botón y el spinner */
+}
 
 .spinner {
-  border: 16px solid #f3f3f3; /* Color de fondo */
-  border-top: 16px solid #3498db; /* Color del spinner */
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
   border-radius: 50%;
-  width: 120px;
-  height: 120px;
+  width: 40px;
+  height: 40px;
   animation: spin 2s linear infinite;
-  margin: 20px auto; /* Centrar el spinner */
 }
 
 @keyframes spin {
@@ -68,4 +79,47 @@ button:focus {
   margin-top: 20px;
   font-size: 18px;
   color: #555;
+}
+
+/* Asegura que los botones también se vean bien en dispositivos móviles */
+@media (max-width: 768px) {
+  .button-container {
+    justify-content: flex-start; /* Alinear a la izquierda también en móvil */
+    flex-direction: column; /* Colocar los botones en una columna en pantallas pequeñas */
+    gap: 10px;
+  }
+
+  .action-button {
+    width: 100%; /* Botones ocupan todo el ancho en pantallas pequeñas */
+  }
+}
+/* Ocultar el input de tipo file */
+input[type="file"] {
+  display: none;
+}
+
+/* Contenedor personalizado para el botón de archivo */
+.custom-file-upload {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f5f5dc; /* Color de fondo beige */
+  color: #004d40; /* Color de texto verde oscuro */
+  border: 1px solid #00897b; /* Borde verde */
+  border-radius: 12px; /* Borde redondeado */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: 10px; /* Mueve todo el contenedor de botones 10px a la derecha */
+}
+
+/* Hover para el botón de archivo */
+.custom-file-upload:hover {
+  background-color: #00897b;
+  color: white;
+}
+
+/* Asegura que el texto del archivo seleccionado esté alineado correctamente */
+.file-name {
+  margin-left: 10px;
+  font-size: 16px;
+  color: #004d40;
 }

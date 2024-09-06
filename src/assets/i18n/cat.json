@@ -122,6 +122,21 @@
   "CONFIRM_PASSWORD_RESET": "Esteu segur que voleu reiniciar la contrasenya?",
   "SEND_EMAIL_CONFIRMATION": "S'ha enviat un correu electrònic a l'adreça {{email}} per canviar la contrasenya.",
   "WELCOME": "Benvingut",
-  "SCAN_TIQUET": "Escanejar tiquet de compra"  
+  "SCAN_TIQUET": "Escanejar tiquet de compra" ,
+  "MUST_UPLOAD_IMAGE": "Heu de carregar una imatge abans de processar el tiquet.",
+  "GESTION_ARTICULOS_TIQUET": "Processar tiquets",
+  "UPLOAD_TICKET": "Carregar Tiquet des de Fitxer",
+  "CAPTURE_TICKET": "Capturar Tiquet amb la Càmera",
+  "SELECT_FILE": "Seleccionar fitxer",
+  "NO_FILE_SELECTED": "Cap fitxer seleccionat",
+  "TICKET_PREVIEW": "Vista prèvia del tiquet",
+  "TICKET_PREVIEW_ALT": "Vista prèvia del tiquet",
+  "PROCESS_TICKET": "Processar Tiquet",
+  "OCR_RESULT": "Resultat de l'OCR",
+  "DETECTED_ITEMS": "Articles detectats",
+  "UPLOADING_ITEMS": "Pujant articles a la base de dades...",
+  "GO_BACK": "Tornar"
+
+
 
 }

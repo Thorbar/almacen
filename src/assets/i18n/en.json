@@ -122,5 +122,19 @@
     "CONFIRM_PASSWORD_RESET": "Are you sure you want to reset your password?",
   "SEND_EMAIL_CONFIRMATION": "An email has been sent to {{email}} to change your password.",
   "WELCOME" : "Welcome",
-  "SCAN_TIQUET": "Scan Shopping ticket"
+  "SCAN_TIQUET": "Scan Shopping ticket",
+  "MUST_UPLOAD_IMAGE": "You must upload an image before processing the ticket.",
+  "GESTION_ARTICULOS_TIQUET": "Ticket processing",
+  "UPLOAD_TICKET": "Upload Ticket from File",
+  "CAPTURE_TICKET": "Capture Ticket with Camera",
+  "SELECT_FILE": "Select File",
+  "NO_FILE_SELECTED": "No file selected",
+  "TICKET_PREVIEW": "Ticket Preview",
+  "TICKET_PREVIEW_ALT": "Ticket Preview",
+  "PROCESS_TICKET": "Process Ticket",
+  "OCR_RESULT": "OCR Result",
+  "DETECTED_ITEMS": "Detected Items",
+  "UPLOADING_ITEMS": "Uploading items to the database...",
+  "GO_BACK": "Go Back"
+
 }

@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild  } from '@angular/core';
 import { Router } from '@angular/router';
 import Tesseract from 'tesseract.js';
 import { createWorker } from 'tesseract.js';
 import { FirestoreService } from '../services/firestore.service';
 import { ProductService } from '../services/product.service';
+import { AlertComponent } from '../alert/alert.component';
+import { TranslateService } from '@ngx-translate/core';
+
 
 interface TicketItem {
   description: string;
@@ -11,6 +14,7 @@ interface TicketItem {
   price: number;
   barcode?: string;
   establecimiento?: string;
+  fechaCracion?: Date;
   fechaUltimaCompra?: Date;
   fechaUltimoRetiro?: Date;
 }
@@ -23,17 +27,35 @@ interface TicketItem {
 export class ArticulosTiquetComponent {
   ticketImage: string | ArrayBuffer | null = null;
   ocrResult: string = '';
+  selectedLanguage: string = 'es'; // Declara la propiedad aquí
   items: TicketItem[] = [];
   isLoading: boolean = false;
   successMessage: string = ''; // Nuevo campo para almacenar el mensaje de éxito
   isFileUpload = false;
   isCameraCapture = false;
+  selectedFileName: string = ''; // Nombre del archivo seleccionado
+  
+  
+  @ViewChild(AlertComponent) alertComponent!: AlertComponent;
 
   constructor(
     private firestoreService: FirestoreService,
     private productService: ProductService,
-    private router: Router
-  ) { }
+    private router: Router,
+    private translate: TranslateService    
+  ) {
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    this.selectedLanguage = savedLanguage || 'es';
+    this.translate.setDefaultLang(this.selectedLanguage);
+    this.translate.use(this.selectedLanguage);
+
+   }
+
+   cleanSupermarketName(name: string): string {
+    // Reemplazamos caracteres como comas, guiones y espacios adicionales
+    return name.replace(/[^a-zA-Z\s]/g, '').trim().toUpperCase();
+  }
+  
 
   selectFileMethod() {
     this.isFileUpload = true;
@@ -44,15 +66,19 @@ export class ArticulosTiquetComponent {
     this.isCameraCapture = true;
   }
 
+  // Método que se activa cuando se selecciona un archivo
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      this.selectedFileName = file.name; // Almacena el nombre del archivo seleccionado
       const reader = new FileReader();
       reader.onload = e => {
         this.ticketImage = reader.result;
         this.ocrResult = ''; // Limpiar el resultado anterior cuando se selecciona una nueva imagen
       };
       reader.readAsDataURL(file);
+    } else {
+      this.selectedFileName = 'Ningún archivo seleccionado';
     }
   }
 
@@ -70,7 +96,10 @@ export class ArticulosTiquetComponent {
 
   async processTicket() {
     if (!this.ticketImage) {
-      console.log('No se ha cargado ninguna imagen de tiquet.');
+      // Obtiene el texto traducido
+      const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');            
+      this.alertComponent.showAlerts(confirmMessage, 'warning');
+      setTimeout(() => this.alertComponent.cancel(), 2500);
       return;
     }
     this.isLoading = true; // Mostrar spinner
@@ -120,7 +149,14 @@ export class ArticulosTiquetComponent {
     this.items = [];
 
     const itemPattern = /^(\d+)\s+(.+?)\s+([\d,]+(?:\.\d{2})?)$/;
-    const establishmentPattern = /(?:Establecimiento|Lugar):\s*(.*)/i;
+   // const establishmentPattern = /(?:Establecimiento|Lugar):\s*(.*)/i;
+
+   // Limpiar y extraer el nombre del supermercado
+   const establishmentRaw = this.extractEstablishment(lines);
+   const establishment = this.cleanSupermarketName(establishmentRaw);
+
+   // Verificar si la colección ya existe o crearla
+   const collectionRef = this.firestoreService.getOrCreateCollection(establishment);
 
     for (const line of lines) {
       const itemMatch = line.match(itemPattern);
@@ -130,12 +166,11 @@ export class ArticulosTiquetComponent {
           description: itemMatch[2].trim(),
           quantity: parseInt(itemMatch[1], 10),
           price: parseFloat(itemMatch[3].replace(',', '.')),
-          establecimiento: this.extractEstablishment(lines),
-          fechaUltimaCompra: new Date(), // Fecha actual como fecha de la última compra
-          fechaUltimoRetiro: new Date()  // Fecha actual como fecha del último retiro
+          establecimiento: establishment,
+          fechaUltimaCompra: new Date(),
+          fechaUltimoRetiro: new Date()
         };
         await this.findBarcodeForItem(item);
-
         this.items.push(item);
       } else {
         console.log('No se encontró coincidencia en:', line);
@@ -143,27 +178,32 @@ export class ArticulosTiquetComponent {
     }
 
     console.log('Artículos encontrados:', this.items);
-    this.updateDatabaseWithItems(this.items);
+    this.updateDatabaseWithItems(this.items, collectionRef);
   }
 
-  extractEstablishment(lines: string[]): string | undefined {
+  extractEstablishment(lines: string[]): string {
     for (const line of lines) {
-      const match = line.match(/(?:Establecimiento|Lugar):\s*(.*)/i);
-      if (match) {
-        return match[1].trim();
+      // Convertir a mayúsculas para evitar problemas de mayúsculas/minúsculas y limpiar caracteres especiales
+      const cleanLine = line.toUpperCase().replace(/[^A-Z\s]/g, '').trim();
+  
+      // Comprobar si la línea contiene el nombre del supermercado
+      if (cleanLine.includes('MERCADONA')) {
+        console.log('Super encontrado:', cleanLine);
+        return 'MERCADONA'; // Si encontramos "MERCADONA", devolvemos el nombre limpio
       }
     }
-    return 'Desconocido'; // Valor por defecto si no se encuentra el establecimiento
+    // Si no encontramos ningún supermercado conocido, devolvemos "OTROSSUPERMERCADOS"
+    return 'OTROSSUPERMERCADOS';
   }
-
-  async updateDatabaseWithItems(items: TicketItem[]) {
+  
+  async updateDatabaseWithItems(items: TicketItem[], collectionRef: any) {
     let successfulUploads = 0;
 
     for (const item of items) {
       try {
-        const { exists, id, collectionRef, itemDoc } = await this.firestoreService.checkIfItemExists(item.description);
+        const { exists, id, itemDoc } = await this.firestoreService.checkIfItemExists(item.description);
 
-        if (exists && collectionRef && itemDoc) {
+        if (exists && itemDoc) {
           await this.firestoreService.updateItem(
             collectionRef,
             itemDoc.id,
@@ -172,10 +212,11 @@ export class ArticulosTiquetComponent {
             item.barcode || 'N/A',
             item.establecimiento || 'Desconocido',
             item.fechaUltimaCompra || new Date(),
-            item.fechaUltimoRetiro || new Date()
+            item.fechaUltimoRetiro || new Date()            
           );
         } else {
           await this.firestoreService.createItem(
+            collectionRef,
             item.description,
             item.quantity,
             item.price,

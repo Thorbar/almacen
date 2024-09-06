@@ -2,13 +2,19 @@
 
 <!-- Contenedor para los botones de carga y captura -->
 <div class="button-container">
-  <button (click)="selectFileMethod()">Cargar Tiquet desde Archivo</button>
-  <button (click)="captureImageMethod()">Capturar Tiquet con Cámara</button>
+  <button (click)="selectFileMethod()">{{ 'UPLOAD_TICKET' | translate }}</button>
+  <button (click)="captureImageMethod()">{{ 'CAPTURE_TICKET' | translate }}</button>
 </div>
 
 <!-- Selección de archivo para cargar el tiquet -->
 <div *ngIf="isFileUpload">
-  <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input">
+  <!-- Botón personalizado para seleccionar archivo -->
+  <label for="file-upload" class="custom-file-upload">
+    {{ 'SELECT_FILE' | translate }}
+  </label>
+  <input id="file-upload" type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" />
+  <!-- Nombre del archivo seleccionado -->
+  <span class="file-name">{{ selectedFileName || ('NO_FILE_SELECTED' | translate) }}</span>
 </div>
 
 <!-- Captura de imagen con la cámara -->
@@ -18,22 +24,33 @@
 
 <!-- Vista previa del tiquet -->
 <div *ngIf="ticketImage">
-  <h3>Vista previa del tiquet:</h3>
-  <img [src]="ticketImage" alt="Ticket Preview" class="ticket-preview">
+  <h3>{{ 'TICKET_PREVIEW' | translate }}</h3>
+  <img [src]="ticketImage" alt="{{ 'TICKET_PREVIEW_ALT' | translate }}" class="ticket-preview">
+</div>
+<div class="action-container">
+  <!-- Botón para procesar el tiquet -->
+  <button (click)="processTicket()" class="action-button">{{ 'PROCESS_TICKET' | translate }}</button>
+  <!-- Spinner de carga -->
+  <div *ngIf="isLoading" class="spinner-container">
+    <div class="spinner"></div>
+    <p class="loading-message">{{ 'UPLOADING_ITEMS' | translate }}</p>
+  </div>
 </div>
 
-<!-- Botón para procesar el tiquet -->
-<button (click)="processTicket()" class="action-button">Procesar Tiquet</button>
+
+
+<!-- Componente de alerta -->
+<app-alert></app-alert>
 
 <!-- Resultado del OCR -->
 <div *ngIf="ocrResult">
-  <h3>Resultado del OCR:</h3>
+  <h3>{{ 'OCR_RESULT' | translate }}</h3>
   <pre>{{ ocrResult }}</pre>
 </div>
 
 <!-- Artículos detectados -->
 <div *ngIf="items && items.length > 0">
-  <h3>Artículos detectados:</h3>
+  <h3>{{ 'DETECTED_ITEMS' | translate }}</h3>
   <ul>
     <li *ngFor="let item of items">
       {{ item.quantity }} x {{ item.description }} - {{ item.price | currency }}
@@ -41,11 +58,6 @@
   </ul>
 </div>
 
-<!-- Spinner de carga -->
-<div *ngIf="isLoading" class="spinner-container">
-  <div class="spinner"></div>
-  <p class="loading-message">Subiendo artículos a la base de datos...</p>
-</div>
 
 <!-- Mensaje de éxito -->
 <div *ngIf="!isLoading && successMessage">
@@ -53,4 +65,4 @@
 </div>
 
 <!-- Botón de volver -->
-<button (click)="volverAlMain()" class="action-button">Volver</button>
+<button (click)="volverAlMain()" class="action-button">{{ 'GO_BACK' | translate }}</button>
