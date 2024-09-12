@@ -6,6 +6,7 @@ import { FirestoreService } from '../services/firestore.service';
 import { ProductService } from '../services/product.service';
 import { AlertComponent } from '../alert/alert.component';
 import { TranslateService } from '@ngx-translate/core';
+import { ChangeDetectorRef } from '@angular/core';
 
 
 interface TicketItem {
@@ -30,6 +31,7 @@ export class ArticulosTiquetComponent {
   selectedLanguage: string = 'es'; // Declara la propiedad aquí
   items: TicketItem[] = [];
   isLoading: boolean = false;
+  isConfirmingEstablishment: boolean = false; // Añadimos esta propiedad para controlar el estado del spinner
   successMessage: string = ''; // Nuevo campo para almacenar el mensaje de éxito
   isFileUpload = false;
   isCameraCapture = false;
@@ -42,7 +44,8 @@ export class ArticulosTiquetComponent {
     private firestoreService: FirestoreService,
     private productService: ProductService,
     private router: Router,
-    private translate: TranslateService    
+    private translate: TranslateService,
+    private cdr: ChangeDetectorRef 
   ) {
     const savedLanguage = localStorage.getItem('selectedLanguage');
     this.selectedLanguage = savedLanguage || 'es';
@@ -96,29 +99,73 @@ export class ArticulosTiquetComponent {
 
   async processTicket() {
     if (!this.ticketImage) {
-      // Obtiene el texto traducido
-      const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');            
+      const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');
       this.alertComponent.showAlerts(confirmMessage, 'warning');
       setTimeout(() => this.alertComponent.cancel(), 2500);
       return;
     }
-    this.isLoading = true; // Mostrar spinner
+  
+    this.isLoading = true;  // Spinner empieza a girar
+  
     try {
       const worker = await createWorker('spa');
       await worker.reinitialize();
       const image = await this.convertToImage(this.ticketImage);
       const { data: { text } } = await worker.recognize(image);
-
-      this.ocrResult = text;
+  
+      this.ocrResult = text.trim();
       console.log('Texto del tiquet:', this.ocrResult);
+  
+      if (!this.ocrResult) {
+        this.alertComponent.showAlerts('No se pudo procesar el tiquet. Intente nuevamente.', 'error');
+        this.isLoading = false;  // Spinner se detiene si falla el OCR
+        return;
+      }
+  
+      // Extraer el establecimiento
+      const establishmentRaw = this.extractEstablishment(this.ocrResult.split('\n'));
+      const establishment = this.cleanSupermarketName(establishmentRaw);
+      const confirmMessage = `¿Se detectó correctamente el establecimiento como ${establishment}?`;
 
-      await worker.terminate(); // Terminamos el worker
+      this.isConfirmingEstablishment = true; // Congelar el spinner mientras aparece el mensaje  
+      // Mantener el spinner visible pero congelado
+      this.alertComponent.showAlerts(confirmMessage, 'confirm');
 
-      this.processTicketData(); // Procesamos los datos extraídos
-
+  
+      const confirmSubscription = this.alertComponent.onConfirm.subscribe(async () => {
+        this.isConfirmingEstablishment = false; // Reanudar el spinner
+        // Spinner vuelve a girar al confirmar
+        this.isLoading = true;
+        await this.processTicketData(establishment);
+        confirmSubscription.unsubscribe();
+      });
+  
+      const cancelSubscription = this.alertComponent.onCancel.subscribe(() => {
+        this.isConfirmingEstablishment = false;
+       // this.alertComponent.cancel();
+        cancelSubscription.unsubscribe();
+        this.isLoading = false;  // Spinner se detiene si se cancela
+      });
+  
     } catch (error) {
       console.error('Error procesando el OCR:', error);
-    } 
+      this.isLoading = false;
+    }
+  }
+  
+  
+  
+
+  // Método para desactivar los botones mientras se procesa el tiquet
+  disableButtons() {
+    this.isFileUpload = false;
+    this.isCameraCapture = false;
+  }
+
+  // Método para habilitar los botones
+  enableButtons() {
+    this.isFileUpload = true;
+    this.isCameraCapture = true;
   }
 
   async convertToImage(ticketImage: string | ArrayBuffer | null): Promise<HTMLImageElement> {
@@ -143,58 +190,144 @@ export class ArticulosTiquetComponent {
       }
     });
   }
-
-  async processTicketData() {
+  
+  async processTicketData(establishment: string) {
     const lines = this.ocrResult.split('\n');
     this.items = [];
+    
+    let itemPattern: RegExp | undefined;
+  
+    // Ajustamos el patrón según el establecimiento
+    if (establishment === 'MERCADONA') {
+      // Mercadona: cantidad + descripción + precio
+      itemPattern = /^(\d+)\s+(.+?)\s+([\d,]+(?:\.\d{2})?)$/;
+    } else if (establishment === 'CARREFOUR' || establishment === 'CONDIS' || establishment === 'BON PREU') {
+      // Carrefour/Condis/Bon Preu: descripción + precio (y cantidad opcional en la línea siguiente)
+      itemPattern = /^(.+?)\s+([\d,]+(?:\.\d{2})?)$/;
+    } else if (establishment === 'LIDL') {
+      // Lidl: descripción + precio/unidad + cantidad + precio total
+      itemPattern = /^(.+?)\s+([\d,]+(?:\.\d{2})?)\s+(\d+)\s+([\d,]+(?:\.\d{2})?)$/;
+    } else if (establishment === 'AMETLLER') {
+      // Ametller: descripción + cantidad + precio/unidad + precio total
+      itemPattern = /^(.+?)\s+(\d+|\d+\.\d+)\s+([\d,]+(?:\.\d{2})?)\s+([\d,]+(?:\.\d{2})?)$/;
+    }
+      // Si el patrón no se definió, podemos usar un patrón por defecto o evitar el procesamiento.
+      if (!itemPattern) {
+        this.alertComponent.showAlerts('El tiquet no se puede leer correctamente, vuelva a subir una imagen.', 'error');
+        
+        // Esperar 2.5 segundos para limpiar la pantalla
+        setTimeout(() => {
+          this.alertComponent.cancel(); // Oculta el mensaje después del tiempo especificado
+          this.clearProcessedData();    // Limpia la pantalla (imagen, OCR, artículos)
+        }, 2500);
+        
+        return; // Evitar continuar el procesamiento si no se define el patrón
+      }
+  
+    const collectionRef = this.firestoreService.getOrCreateCollection(establishment);
+  
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
 
-    const itemPattern = /^(\d+)\s+(.+?)\s+([\d,]+(?:\.\d{2})?)$/;
-   // const establishmentPattern = /(?:Establecimiento|Lugar):\s*(.*)/i;
+      // Verificamos si el patrón es válido
+      let itemMatch = itemPattern ? line.match(itemPattern) : null;
 
-   // Limpiar y extraer el nombre del supermercado
-   const establishmentRaw = this.extractEstablishment(lines);
-   const establishment = this.cleanSupermarketName(establishmentRaw);
-
-   // Verificar si la colección ya existe o crearla
-   const collectionRef = this.firestoreService.getOrCreateCollection(establishment);
-
-    for (const line of lines) {
-      const itemMatch = line.match(itemPattern);
       if (itemMatch) {
-        console.log('Coincidencia de artículo encontrada', itemMatch);
-        const item: TicketItem = {
-          description: itemMatch[2].trim(),
-          quantity: parseInt(itemMatch[1], 10),
-          price: parseFloat(itemMatch[3].replace(',', '.')),
+        console.log('Coincidencia de artículo encontrada:', itemMatch);
+  
+        let item: TicketItem = {
+          description: '',
+          quantity: 1,
+          price: 0,
           establecimiento: establishment,
           fechaUltimaCompra: new Date(),
-          fechaUltimoRetiro: new Date()
-        };
-        await this.findBarcodeForItem(item);
+        }; // Inicialización básica de item
+  
+        if (establishment === 'MERCADONA') {
+          // Para Mercadona: cantidad + descripción + precio
+          item = {
+            description: itemMatch[2].trim(),
+            quantity: parseInt(itemMatch[1], 10),
+            price: parseFloat(itemMatch[3].replace(',', '.')), // Precio unitario
+            establecimiento: establishment,
+            fechaUltimaCompra: new Date(),
+          };
+        } else if (establishment === 'CARREFOUR' || establishment === 'CONDIS' || establishment === 'BON PREU') {
+          // Para Carrefour/Condis/Bon Preu: descripción + precio y cantidad opcional en la siguiente línea
+          item = {
+            description: itemMatch[1].trim(),
+            quantity: 1, // Por defecto 1, revisaremos si hay una línea de cantidad debajo
+            price: parseFloat(itemMatch[2].replace(',', '.')), // Precio unitario
+            establecimiento: establishment,
+            fechaUltimaCompra: new Date(),
+          };
+  
+          // Verificamos si la siguiente línea tiene la cantidad (por ejemplo "8" debajo de "FANTA NARANJA LATA")
+          if (i + 1 < lines.length) {
+            const nextLine = lines[i + 1].trim();
+            const quantityMatch = nextLine.match(/^\d+$/); // Verificamos si la línea siguiente es un número (cantidad)
+            if (quantityMatch) {
+              item.quantity = parseInt(quantityMatch[0], 10); // Actualizamos la cantidad
+              i++; // Saltamos la línea de cantidad
+            }
+          }
+        } else if (establishment === 'LIDL') {
+          // Para Lidl: descripción + precio/unidad + cantidad + precio total
+          item = {
+            description: itemMatch[1].trim(),
+            quantity: parseInt(itemMatch[3], 10),
+            price: parseFloat(itemMatch[2].replace(',', '.')), // Precio unitario
+            establecimiento: establishment,
+            fechaUltimaCompra: new Date(),
+          };
+        } else if (establishment === 'AMETLLER') {
+          // Para Ametller: descripción + cantidad + precio/unidad + precio total
+          item = {
+            description: itemMatch[1].trim(),
+            quantity: parseFloat(itemMatch[2]), // Puede ser en peso (ej. 1.5 kg)
+            price: parseFloat(itemMatch[3].replace(',', '.')), // Precio unitario
+            establecimiento: establishment,
+            fechaUltimaCompra: new Date(),
+          };
+        }
+  
+        await this.findBarcodeForItem(item); // Buscar el código de barras si es necesario
         this.items.push(item);
       } else {
         console.log('No se encontró coincidencia en:', line);
       }
     }
-
+  
     console.log('Artículos encontrados:', this.items);
     this.updateDatabaseWithItems(this.items, collectionRef);
-  }
+    // Limpiar tiquet, OCR y artículos al finalizar el proceso
+  }  
 
-  extractEstablishment(lines: string[]): string {
+
+  extractEstablishment(lines: string[]): string {    
     for (const line of lines) {
-      // Convertir a mayúsculas para evitar problemas de mayúsculas/minúsculas y limpiar caracteres especiales
       const cleanLine = line.toUpperCase().replace(/[^A-Z\s]/g, '').trim();
+      console.log('Línea procesada:', cleanLine); // Para depuración
   
       // Comprobar si la línea contiene el nombre del supermercado
       if (cleanLine.includes('MERCADONA')) {
         console.log('Super encontrado:', cleanLine);
         return 'MERCADONA'; // Si encontramos "MERCADONA", devolvemos el nombre limpio
       }
+      else if (cleanLine.includes('CARREFOUR')) {
+        console.log('Super encontrado:', cleanLine);
+        return 'CARREFOUR'; // Si encontramos "MERCADONA", devolvemos el nombre limpio
+      } else if (cleanLine.includes('BON PREU')) {
+        return 'BON PREU';
+      } else if (cleanLine.includes('LIDL')) {
+        return 'LIDL';
+      } else if (cleanLine.includes('CONDIS')) {
+        return 'CONDIS';
+      }
     }
-    // Si no encontramos ningún supermercado conocido, devolvemos "OTROSSUPERMERCADOS"
-    return 'OTROSSUPERMERCADOS';
+    return 'OTROS_SUPERMERCADOS';
   }
+  
   
   async updateDatabaseWithItems(items: TicketItem[], collectionRef: any) {
     let successfulUploads = 0;
@@ -211,8 +344,7 @@ export class ArticulosTiquetComponent {
             item.price,
             item.barcode || 'N/A',
             item.establecimiento || 'Desconocido',
-            item.fechaUltimaCompra || new Date(),
-            item.fechaUltimoRetiro || new Date()            
+            item.fechaUltimaCompra || new Date()
           );
         } else {
           await this.firestoreService.createItem(
@@ -222,8 +354,7 @@ export class ArticulosTiquetComponent {
             item.price,
             item.barcode || 'N/A',
             item.establecimiento || 'Desconocido',
-            item.fechaUltimaCompra || new Date(),
-            item.fechaUltimoRetiro || new Date()
+            item.fechaUltimaCompra || new Date()
           );
         }
         successfulUploads++;
@@ -232,8 +363,33 @@ export class ArticulosTiquetComponent {
       }
     }
 
-    this.isLoading = false; // Ocultar spinner
-    this.successMessage = `El proceso ha finalizado correctamente. Se han subido ${successfulUploads} artículos.`; // Mostrar mensaje de éxito
+    this.isLoading = false; // Spinner detenido
+
+    // Mostrar el mensaje de éxito
+    this.alertComponent.showAlerts(`El proceso ha finalizado correctamente. Se han subido ${successfulUploads} artículos.`, 'success');
+
+    // Esperar 2.5 segundos antes de limpiar los datos
+    setTimeout(() => {
+      this.alertComponent.cancel();  // Ocultar el mensaje      
+    }, 2500);
+    this.clearProcessedData();     // Limpiar la pantalla después de que desaparezca el mensaje
+}
+
+
+  clearProcessedData() {
+    // Limpia la imagen del tiquet, el resultado OCR y los artículos
+    this.ticketImage = null;
+    this.ocrResult = '';
+    this.items = [];
+    
+    // Resetear la selección de archivo
+    this.selectedFileName = '';  // Reiniciar el nombre del archivo seleccionado
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';  // Limpiar el valor del campo de selección de archivo
+    }
+    // Asegurarse de que Angular detecte los cambios para que actualice la vista
+    this.cdr.detectChanges();
   }
 
   async findBarcodeForItem(item: TicketItem) {
@@ -243,7 +399,7 @@ export class ArticulosTiquetComponent {
 
       if (products.length > 0) {
         const product = products[0];
-        item.barcode = product.code;
+        item.barcode = product.code || '';
       }
     } catch (error) {
       console.error(`Error buscando código de barras para ${item.description}:`, error);

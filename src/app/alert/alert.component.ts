@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 
+
 @Component({
   selector: 'app-alert',
   templateUrl: './alert.component.html',
@@ -25,16 +26,17 @@ export class AlertComponent implements OnInit {
     this.type = type;
     this.showAlert = true;
     this.isConfirm = this.type === 'confirm';
+
   }
+  
   confirm() {
     this.onConfirm.emit();
-    this.showAlert = false;;
+    this.showAlert = false;
 
   }
-
+  // Cuando el usuario cancela
   cancel() {
     this.onCancel.emit();
     this.showAlert = false;
-
   }
 }

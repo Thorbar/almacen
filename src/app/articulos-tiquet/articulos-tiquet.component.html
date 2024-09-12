@@ -2,8 +2,8 @@
 
 <!-- Contenedor para los botones de carga y captura -->
 <div class="button-container">
-  <button (click)="selectFileMethod()">{{ 'UPLOAD_TICKET' | translate }}</button>
-  <button (click)="captureImageMethod()">{{ 'CAPTURE_TICKET' | translate }}</button>
+  <button (click)="selectFileMethod()" [disabled]="isLoading">{{ 'UPLOAD_TICKET' | translate }}</button>
+  <button (click)="captureImageMethod()" [disabled]="isLoading">{{ 'CAPTURE_TICKET' | translate }}</button>
 </div>
 
 <!-- Selección de archivo para cargar el tiquet -->
@@ -12,14 +12,14 @@
   <label for="file-upload" class="custom-file-upload">
     {{ 'SELECT_FILE' | translate }}
   </label>
-  <input id="file-upload" type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" />
+  <input id="file-upload" type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" [disabled]="isLoading"/>
   <!-- Nombre del archivo seleccionado -->
   <span class="file-name">{{ selectedFileName || ('NO_FILE_SELECTED' | translate) }}</span>
 </div>
 
 <!-- Captura de imagen con la cámara -->
 <div *ngIf="isCameraCapture">
-  <input type="file" accept="image/*" (change)="onCameraImageSelected($event)" capture="environment" class="file-input">
+  <input type="file" accept="image/*" (change)="onCameraImageSelected($event)" capture="environment" class="file-input" [disabled]="isLoading">
 </div>
 
 <!-- Vista previa del tiquet -->
@@ -29,10 +29,10 @@
 </div>
 <div class="action-container">
   <!-- Botón para procesar el tiquet -->
-  <button (click)="processTicket()" class="action-button">{{ 'PROCESS_TICKET' | translate }}</button>
+  <button (click)="processTicket()" class="action-button" [disabled]="isLoading">{{ 'PROCESS_TICKET' | translate }}</button>
   <!-- Spinner de carga -->
   <div *ngIf="isLoading" class="spinner-container">
-    <div class="spinner"></div>
+    <div class="spinner" [ngClass]="{'paused': isConfirmingEstablishment}"></div> <!-- Aquí congelamos el spinner -->
     <p class="loading-message">{{ 'UPLOADING_ITEMS' | translate }}</p>
   </div>
 </div>
@@ -65,4 +65,4 @@
 </div>
 
 <!-- Botón de volver -->
-<button (click)="volverAlMain()" class="action-button">{{ 'GO_BACK' | translate }}</button>
+<button (click)="volverAlMain()" class="action-button" [disabled]="isLoading">{{ 'GO_BACK' | translate }}</button>

@@ -68,7 +68,10 @@ button:focus {
   height: 40px;
   animation: spin 2s linear infinite;
 }
-
+/* Añade esta clase CSS para congelar el spinner */
+.spinner.paused {
+  animation-play-state: paused;
+}
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

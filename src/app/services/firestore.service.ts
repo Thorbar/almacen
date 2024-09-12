@@ -54,8 +54,7 @@ export class FirestoreService {
     price: number,
     codigo: string,
     establecimiento: string,
-    fechaUltimaCompra: Date,
-    fechaUltimoRetiro: Date
+    fechaUltimaCompra: Date
   ) {
     try {
       const docRef = collectionRef.doc(docId);
@@ -69,8 +68,7 @@ export class FirestoreService {
         precio: price,
         codigo: codigo,
         establecimiento: establecimiento,
-        fechaUltimaCompra: fechaUltimaCompra,
-        fechaUltimoRetiro: fechaUltimoRetiro,
+        fechaUltimaCompra: fechaUltimaCompra
       });
       console.log(`Artículo actualizado: ${docId}, Nueva cantidad: ${newQuantity}, Precio: ${price}`);
     } catch (error) {
@@ -85,8 +83,7 @@ export class FirestoreService {
     price: number,
     codigo: string,
     establecimiento: string,
-    fechaUltimaCompra: Date,
-    fechaUltimoRetiro: Date
+    fechaUltimaCompra: Date
   ) {
     try {
       const newItem = {
@@ -96,8 +93,7 @@ export class FirestoreService {
         codigo: codigo,
         establecimiento: establecimiento,
         fechaCreacion: new Date(),
-        fechaUltimaCompra: fechaUltimaCompra,
-        fechaUltimoRetiro: fechaUltimoRetiro,
+        fechaUltimaCompra: fechaUltimaCompra
       };
 
       await collectionRef.add(newItem);
@@ -106,4 +102,5 @@ export class FirestoreService {
       console.error(`Error al crear el artículo ${description}:`, error);
     }
   }
+  //FAlta codigo para retirar item
 }
