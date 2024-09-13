@@ -21,6 +21,9 @@ export interface Producto {
   fechaUltimoRetiro?: Date;    // Se actualiza al retirar una cantidad
 }
 
+type Categoria = 'fresco' | 'seco' | 'limpieza' | 'congelado';
+
+
 @Component({
   selector: 'app-articulos',
   templateUrl: './articulos.component.html',
@@ -31,6 +34,7 @@ export class ArticulosComponent implements OnInit {
   recognition: any;
   scannedResult: string | null = null;
   action: string | null = null;
+  messageVisible: boolean = false;
   formats: BarcodeFormat[] = [
     BarcodeFormat.QR_CODE, BarcodeFormat.CODE_128, BarcodeFormat.EAN_13,
     BarcodeFormat.ITF, BarcodeFormat.CODE_39, BarcodeFormat.CODABAR,
@@ -38,39 +42,70 @@ export class ArticulosComponent implements OnInit {
   ];
   selectedDevice: MediaDeviceInfo | undefined;
   availableDevices: MediaDeviceInfo[] = [];
+  username: string = 'default_user';
   isProcessing: boolean = false;
   isAddingProduct: boolean = false;
-  // Variable que define la colección (se determinará en función de la categoría)
-  categoriaSeleccionada: string | null = null;
+  selectedLanguage: string = 'es'; // Declara la propiedad aquí
+  nuevoProducto: any;
+  categoriaSeleccionadaFirestore?: Categoria;
 
   constructor(
     private router: Router,
     private http: HttpClient,
     private firestore: AngularFirestore,
-    private translate: TranslateService,
+    private translate: TranslateService, // Asegúrate de que este nombre coincida
     private productService: ProductService  // Inyecta el servicio aquí
   ) {}
+
+
+  categoriaSeleccionada: string | null = null;
+  baseDatosCategorias: { [key: string]: string } = {
+    'Congelado': 'Productos_Congelado',
+    'Fresco': 'Productos_Fresco',
+    'Limpieza': 'Productos_Limpieza',
+    'Seco': 'Productos_Seco'
+  };
+
+  // Mapeo de categorías a nombres de colecciones en Firestore
+  categoriasFirestore: Record<Categoria, string> = {
+    'fresco': 'Productos_Fresco',
+    'seco': 'Productos_Seco',
+    'limpieza': 'Productos_Limpieza',
+    'congelado': 'Productos_Congelado'
+  };
 
   ngOnInit() {
     console.log('Component initialized');
 
-    // Verificar permiso de la cámara al iniciar el componente
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(() => {
-          this.hasPermission = true;
-          console.log('Permiso de cámara concedido');
-        })
-        .catch(() => {
-          this.hasPermission = false;
-          console.log('Permiso de cámara denegado');
-        });
-    } else {
-      console.log('getUserMedia no está disponible en este navegador.');
-    }
+    // Introducir un temporizador de 5 segundos, es un parche para que tarde mas en abrir la camara.
+    setTimeout(() => {
+      // Verificar permiso de la cámara
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(() => {
+            this.hasPermission = true;
+            console.log('Permiso de cámara concedido');
+          })
+          .catch(() => {
+            this.hasPermission = false;
+            console.log('Permiso de cámara denegado');
+          });
+      } else {
+        console.log('getUserMedia no está disponible en este navegador.');
+      }
+    }, 6000); // 5000 milisegundos = 5 segundos
 
     // Configuración del reconocimiento de voz
     this.setupVoiceRecognition();
+
+    // Preguntar por la categoría con reconocimiento de voz antes de iniciar el escaneo
+    this.promptForCategoryVoice();
+  }
+
+  // Método para preguntar por la categoría usando reconocimiento de voz
+  promptForCategoryVoice() {
+    alert('Diga la categoría en la que desea operar: Congelado, Fresco, Limpieza, o Seco.');
+    this.startVoiceRecognition();
   }
 
   setupVoiceRecognition() {
@@ -100,16 +135,54 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
+
+
+  handleVoiceCommand(command: string) {
+    const categorias = ['congelado', 'fresco', 'limpieza', 'seco'];
+
+    if (categorias.includes(command)) {
+      this.categoriaSeleccionadaFirestore = command as Categoria; // Usar Categoria
+      this.categoriaSeleccionada = this.categoriasFirestore[this.categoriaSeleccionadaFirestore]
+      //this.categoriaSeleccionada = this.baseDatosCategorias[command.charAt(0).toUpperCase() + command.slice(1)];
+      alert(`Categoría seleccionada: ${command.charAt(0).toUpperCase() + command.slice(1)}`);
+      this.activateCamera(); // Activar la cámara después de seleccionar la categoría
+    } else if (command.includes('agregar')) {
+      this.action = 'agregar';
+      this.isProcessing = true;
+      this.handleAgregar();
+    } else if (command.includes('retirar')) {
+      this.action = 'retirar';
+      this.isProcessing = true;
+      this.handleRetirar();
+    } else if (command.includes('eliminar')) {
+      this.action = 'eliminar';
+      this.isProcessing = true;
+      this.handleEliminar();
+    } else {
+      alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar".');
+      //this.router.navigate(['/main-site']);
+    }
+    this.stopVoiceRecognition();
+  }
+
   stopVoiceRecognition() {
     if (this.recognition) {
       this.recognition.stop();
     }
   }
 
-  onCamerasFound(devices: MediaDeviceInfo[]) {
-    this.availableDevices = devices;
-    if (devices.length > 0) {
-      this.selectedDevice = devices[0];
+  activateCamera() {
+    // Verificar permiso de la cámara y activarla
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(() => {
+          this.hasPermission = true;
+          alert('Cámara activada. Escanee un código.');
+        })
+        .catch(() => {
+          this.hasPermission = false;
+          alert('Permiso para acceder a la cámara no concedido.');
+        });
     }
   }
 
@@ -126,55 +199,42 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
-  // Función dinámica para determinar la colección de Firestore según la categoría
-  obtenerColeccionFirestore(categoria: string): string {
-    const colecciones: { [key: string]: string } = {
-      'congelado': 'Productos_Congelado',
-      'fresco': 'Productos_Fresco',
-      'limpieza': 'Productos_Limpieza',
-      'seco': 'Productos_Seco',
-      // Agrega más colecciones según tus necesidades
-    };
-
-    return colecciones[categoria] || 'Productos_Otros';  // Default a otra colección si no se encuentra la categoría
+  onCamerasFound(devices: MediaDeviceInfo[]) {
+    this.availableDevices = devices;
+    if (devices.length > 0) {
+      this.selectedDevice = devices[0];
+    }
   }
 
-  handleVoiceCommand(command: string) {
-    if (command.includes('agregar')) {
-      this.action = 'agregar';
-      this.isProcessing = true;
-      this.handleAgregar();
-    } else if (command.includes('retirar')) {
-      this.action = 'retirar';
-      this.isProcessing = true;
-      this.handleRetirar();
-    } else if (command.includes('eliminar')) {
-      this.action = 'eliminar';
-      this.isProcessing = true;
-      this.handleEliminar();
-    } else {
-      alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar".');
-    }
-    this.stopVoiceRecognition();
+  volver() {
+    this.router.navigate(['/main-site']);
   }
 
   handleAgregar() {
     if (this.scannedResult && !this.isAddingProduct) {
       this.isAddingProduct = true;
+      console.log('Categoría seleccionada:', this.categoriaSeleccionadaFirestore);
 
-      // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco');
+      // Asegúrate de que la categoría seleccionada sea válida
+      if (!this.categoriaSeleccionadaFirestore || !this.categoriasFirestore.hasOwnProperty(this.categoriaSeleccionadaFirestore)) {
+        alert('Categoría seleccionada no válida.');
+        this.isProcessing = false;
+        this.isAddingProduct = false;
+        return;
+      }
+
+      const categoriaFirestore = this.categoriasFirestore[this.categoriaSeleccionadaFirestore];
 
       const verificarExistenciaEnTodasLasBases = (codigo: string): Observable<{ existe: boolean, nombre: string, categoria: string } | null> => {
-        const categorias = Object.values(this.obtenerColeccionFirestore);
-        const verificaciones = categorias.map(coleccion =>
+        const categorias = Object.entries(this.categoriasFirestore);
+        const verificaciones = categorias.map(([categoria, coleccion]) =>
           this.firestore.collection(coleccion, ref => ref.where('codigo', '==', codigo))
             .snapshotChanges()
             .pipe(
               map(actions => {
                 if (actions.length > 0) {
                   const data = actions[0].payload.doc.data() as Producto;
-                  return { existe: true, nombre: data.descripcion, categoria: coleccion };
+                  return { existe: true, nombre: data.descripcion, categoria };
                 }
                 return null;
               }),
@@ -195,52 +255,57 @@ export class ArticulosComponent implements OnInit {
             this.isAddingProduct = false;
             return;
           } else {
-            this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
-              .snapshotChanges()
-              .pipe(
-                map(actions => actions.map(a => {
-                  const data = a.payload.doc.data() as Producto;
-                  const docId = a.payload.doc.id;
-                  return { ...data, docId };
-                })),
-                take(1)
-              )
-              .subscribe((productos: (Producto & { docId: string })[]) => {
-                if (productos.length === 0) {
-                  this.productService.getProductByBarcode(this.scannedResult!)
-                    .subscribe(response => {
-                      if (response && response.product) {
-                        const productoDeApi = response.product;
-                        const descripcion = productoDeApi.product_name || '';
-                        const establecimiento = productoDeApi.stores || '';
-                        const precio = productoDeApi.price_value || productoDeApi.unit_price || 0;
+            if (categoriaFirestore) {
+              this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
+                .snapshotChanges()
+                .pipe(
+                  map(actions => actions.map(a => {
+                    const data = a.payload.doc.data() as Producto;
+                    const docId = a.payload.doc.id;
+                    return { ...data, docId };
+                  })),
+                  take(1)
+                )
+                .subscribe((productos: (Producto & { docId: string })[]) => {
+                  if (productos.length === 0) {
+                    this.productService.getProductByBarcode(this.scannedResult!)
+                      .subscribe(response => {
+                        if (response && response.product) {
+                          const productoDeApi = response.product;
+                          const descripcion = productoDeApi.product_name || '';
+                          const establecimiento = productoDeApi.stores || '';
+                          const precio = productoDeApi.price_value || productoDeApi.unit_price || 0;
 
-                        const nuevoProducto: Producto = {
-                          descripcion,
-                          establecimiento,
-                          precio,
-                          cantidadStock: 0,
-                          codigo: this.scannedResult!,
-                          id: Date.now(),
-                          fechaCreacion: new Date()
-                        };
+                          const nuevoProducto: Producto = {
+                            descripcion,
+                            establecimiento,
+                            precio,
+                            cantidadStock: 0,
+                            codigo: this.scannedResult!,
+                            id: Date.now(),
+                            fechaCreacion: new Date()
+                          };
 
-                        if (!descripcion || !establecimiento) {
-                          this.promptForNewProductDetails(nuevoProducto);
+                          if (!descripcion || !establecimiento) {
+                            this.promptForNewProductDetails(nuevoProducto);
+                          } else {
+                            this.promptForQuantity(nuevoProducto);
+                          }
                         } else {
-                          this.promptForQuantity(nuevoProducto);
+                          this.promptForNewProductDetails();
                         }
-                      } else {
-                        this.promptForNewProductDetails();
-                      }
-                    });
-                } else {
-                  const producto = productos[0];
-                  alert('Producto existente');
-                  this.promptForQuantity(producto);
-                }
-                this.isProcessing = false;
-              });
+                      });
+                  } else {
+                    const producto = productos[0];
+                    alert('Producto existente');
+                    this.promptForQuantity(producto);
+                  }
+                  this.isProcessing = false;
+                });
+            } else {
+              alert('Categoría seleccionada no válida.');
+              this.isProcessing = false;
+            }
           }
         });
     } else {
@@ -248,8 +313,78 @@ export class ArticulosComponent implements OnInit {
       this.isProcessing = false;
     }
   }
-  
-    promptForQuantity(producto: Producto & { docId?: string }) {
+
+  handleRetirar() {
+    if (this.scannedResult) {
+      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
+        .snapshotChanges()
+        .pipe(
+          map(actions => actions.map(a => {
+            const data = a.payload.doc.data() as Producto;
+            const docId = a.payload.doc.id;
+            return { ...data, docId };
+          })),
+          take(1)
+        )
+        .subscribe((productos: (Producto & { docId: string })[]) => {
+          if (productos.length > 0) {
+            const producto = productos[0];
+            this.promptForRetirarCantidad(producto);
+          } else {
+            alert('Producto no encontrado.');
+            this.isProcessing = false;
+          }
+        });
+    } else {
+      alert('No se ha detectado ningún código.');
+      this.isProcessing = false;
+    }
+  }
+
+  promptForRetirarCantidad(producto: Producto & { docId: string }) {
+    const cantidad = prompt('Ingrese la cantidad a retirar:', '1');
+    if (cantidad) {
+      const cantidadNumerica = parseInt(cantidad, 10);
+      if (cantidadNumerica === 0) {
+        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
+        if (cancelar) {
+          this.cancelarOperacion();
+          return;
+        }
+      }
+      if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
+        if (producto.cantidadStock >= cantidadNumerica) {
+          const fechaUltimoRetiro = new Date(); // Se registra la fecha del último retiro
+          this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
+            .update({
+              cantidadStock: producto.cantidadStock - cantidadNumerica,
+              fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro
+            })
+            .then(() => {
+              alert('Cantidad retirada');
+              this.isProcessing = false;
+            })
+            .catch(error => {
+              console.error('Error al retirar cantidad: ', error);
+              this.scannedResult = null;
+              this.isProcessing = false;
+            });
+        } else {
+          alert('No hay suficiente cantidad en stock.');
+          this.scannedResult = null;
+          this.isProcessing = false;
+        }
+      } else {
+        alert('Cantidad no válida.');
+        this.isProcessing = false;
+      }
+    } else {
+      alert('Operación cancelada.');
+      this.isProcessing = false;
+    }
+  }
+
+  promptForQuantity(producto: Producto & { docId?: string }) {
     const precioAnterior = producto.precio;
     const nuevoPrecio = prompt('Confirma el precio para ${ producto.descripcion }(anterior: ${ precioAnterior }€), precioAnterior.toString()');
 
@@ -439,86 +574,10 @@ export class ArticulosComponent implements OnInit {
       this.scannedResult = null;
     }
   }
-  
-    handleRetirar() {
-    if (this.scannedResult) {
-      // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco');
-
-      this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
-        .snapshotChanges()
-        .pipe(
-          map(actions => actions.map(a => {
-            const data = a.payload.doc.data() as Producto;
-            const docId = a.payload.doc.id;
-            return { ...data, docId };
-          })),
-          take(1)
-        )
-        .subscribe((productos: (Producto & { docId: string })[]) => {
-          if (productos.length > 0) {
-            const producto = productos[0];
-            this.promptForRetirarCantidad(producto);
-          } else {
-            alert('Producto no encontrado.');
-            this.isProcessing = false;
-          }
-        });
-    } else {
-      alert('No se ha detectado ningún código.');
-      this.isProcessing = false;
-    }
-  }
-
-  promptForRetirarCantidad(producto: Producto & { docId: string }) {
-    const cantidad = prompt('Ingrese la cantidad a retirar:', '1');
-    if (cantidad) {
-      const cantidadNumerica = parseInt(cantidad, 10);
-      if (cantidadNumerica === 0) {
-        const cancelar = confirm('¿Seguro que quieres cancelar la operación?');
-        if (cancelar) {
-          this.cancelarOperacion();
-          return;
-        }
-      }
-      if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
-        if (producto.cantidadStock >= cantidadNumerica) {
-          const fechaUltimoRetiro = new Date(); // Se registra la fecha del último retiro
-          this.firestore.collection(this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco')).doc(producto.docId)
-            .update({
-              cantidadStock: producto.cantidadStock - cantidadNumerica,
-              fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro
-            })
-            .then(() => {
-              alert('Cantidad retirada');
-              this.isProcessing = false;
-            })
-            .catch(error => {
-              console.error('Error al retirar cantidad: ', error);
-              this.scannedResult = null;
-              this.isProcessing = false;
-            });
-        } else {
-          alert('No hay suficiente cantidad en stock.');
-          this.scannedResult = null;
-          this.isProcessing = false;
-        }
-      } else {
-        alert('Cantidad no válida.');
-        this.isProcessing = false;
-      }
-    } else {
-      alert('Operación cancelada.');
-      this.isProcessing = false;
-    }
-  }
 
   handleEliminar() {
     if (this.scannedResult) {
-      // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco');
-
-      this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
+      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
         .snapshotChanges()
         .pipe(
           map(actions => actions.map(a => {
@@ -541,8 +600,5 @@ export class ArticulosComponent implements OnInit {
       alert('No se ha detectado ningún código.');
       this.isProcessing = false;
     }
-  }
-  volver() {
-    this.router.navigate(['/main-site']);
   }
 }

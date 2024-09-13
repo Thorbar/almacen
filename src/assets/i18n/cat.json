@@ -135,7 +135,14 @@
   "OCR_RESULT": "Resultat de l'OCR",
   "DETECTED_ITEMS": "Articles detectats",
   "UPLOADING_ITEMS": "Pujant articles a la base de dades...",
-  "GO_BACK": "Tornar"
+  "GO_BACK": "Tornar",
+  "TICKET_PROCESSING_ERROR": "No es va poder processar el tiquet. Intenta-ho novament.",
+  "ESTABLISHMENT_DETECTED": "S'ha detectat correctament l'establiment com ",
+  "USER_CANCELLED": "Cancel·lat per l'usuari.",
+  "TICKET_READ_ERROR": "El tiquet no es pot llegir correctament, torna a pujar una imatge.",
+  "PROCESS_COMPLETED_SUCCESS": "El procés ha finalitzat correctament. S'han pujat ${successfulUploads} articles.",
+  "ITEMS": "Articles"
+
 
 
 

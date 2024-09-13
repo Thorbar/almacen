@@ -135,6 +135,13 @@
   "OCR_RESULT": "OCR Result",
   "DETECTED_ITEMS": "Detected Items",
   "UPLOADING_ITEMS": "Uploading items to the database...",
-  "GO_BACK": "Go Back"
+  "GO_BACK": "Go Back",
+  "TICKET_PROCESSING_ERROR": "The ticket could not be processed. Please try again.",
+  "ESTABLISHMENT_DETECTED": "The establishment was correctly detected as ",
+  "USER_CANCELLED": "Cancelled by the user.",
+  "TICKET_READ_ERROR": "The ticket cannot be read correctly, please upload an image again.",
+  "PROCESS_COMPLETED_SUCCESS": "The process has been successfully completed. Have been uploaded.",
+  "ITEMS": "Items"
+
 
 }

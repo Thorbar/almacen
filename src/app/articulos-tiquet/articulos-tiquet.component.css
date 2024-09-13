@@ -20,11 +20,19 @@ button {
 }
 
 /* Hover para botones: cambia el fondo y el texto */
-button:hover {
+button:hover:enabled {
   background-color: #00897b; /* Verde más oscuro */
   color: #fff; /* Texto blanco */
 }
 
+/* Estilo cuando el botón está deshabilitado */
+button:disabled {
+  background-color: #cccccc; /* Color de fondo gris claro */
+  color: #666666; /* Color de texto gris oscuro */
+  cursor: not-allowed; /* Cursor no permitido */
+}
+
+/* Estilo para cuando el botón recibe foco */
 button:focus {
   outline: none;
 }
@@ -54,12 +62,14 @@ button:focus {
 .spinner-container {
   text-align: center;
 }
+
 .action-container {
   display: flex;
   align-items: center;
   gap: 20px; /* Ajusta la separación entre el botón y el spinner */
 }
 
+/* Estilos para el spinner */
 .spinner {
   border: 8px solid #f3f3f3;
   border-top: 8px solid #3498db;
@@ -68,13 +78,19 @@ button:focus {
   height: 40px;
   animation: spin 2s linear infinite;
 }
+
 /* Añade esta clase CSS para congelar el spinner */
 .spinner.paused {
   animation-play-state: paused;
 }
+
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loading-message {
@@ -96,6 +112,7 @@ button:focus {
     width: 100%; /* Botones ocupan todo el ancho en pantallas pequeñas */
   }
 }
+
 /* Ocultar el input de tipo file */
 input[type="file"] {
   display: none;

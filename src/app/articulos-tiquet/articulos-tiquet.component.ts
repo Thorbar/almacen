@@ -1,4 +1,4 @@
-import { Component, ViewChild  } from '@angular/core';
+import { Component, ViewChild, NgZone   } from '@angular/core';
 import { Router } from '@angular/router';
 import Tesseract from 'tesseract.js';
 import { createWorker } from 'tesseract.js';
@@ -45,7 +45,8 @@ export class ArticulosTiquetComponent {
     private productService: ProductService,
     private router: Router,
     private translate: TranslateService,
-    private cdr: ChangeDetectorRef 
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone
   ) {
     const savedLanguage = localStorage.getItem('selectedLanguage');
     this.selectedLanguage = savedLanguage || 'es';
@@ -99,73 +100,129 @@ export class ArticulosTiquetComponent {
 
   async processTicket() {
     if (!this.ticketImage) {
-      const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');
-      this.alertComponent.showAlerts(confirmMessage, 'warning');
-      setTimeout(() => this.alertComponent.cancel(), 2500);
-      return;
-    }
-  
-    this.isLoading = true;  // Spinner empieza a girar
-  
-    try {
-      const worker = await createWorker('spa');
-      await worker.reinitialize();
-      const image = await this.convertToImage(this.ticketImage);
-      const { data: { text } } = await worker.recognize(image);
-  
-      this.ocrResult = text.trim();
-      console.log('Texto del tiquet:', this.ocrResult);
-  
-      if (!this.ocrResult) {
-        this.alertComponent.showAlerts('No se pudo procesar el tiquet. Intente nuevamente.', 'error');
-        this.isLoading = false;  // Spinner se detiene si falla el OCR
+        const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');
+        this.alertComponent.showAlerts(confirmMessage, 'warning');
+        setTimeout(() => this.alertComponent.cancel(), 2500);
         return;
-      }
-  
-      // Extraer el establecimiento
-      const establishmentRaw = this.extractEstablishment(this.ocrResult.split('\n'));
-      const establishment = this.cleanSupermarketName(establishmentRaw);
-      const confirmMessage = `¿Se detectó correctamente el establecimiento como ${establishment}?`;
-
-      this.isConfirmingEstablishment = true; // Congelar el spinner mientras aparece el mensaje  
-      // Mantener el spinner visible pero congelado
-      this.alertComponent.showAlerts(confirmMessage, 'confirm');
-
-  
-      const confirmSubscription = this.alertComponent.onConfirm.subscribe(async () => {
-        this.isConfirmingEstablishment = false; // Reanudar el spinner
-        // Spinner vuelve a girar al confirmar
-        this.isLoading = true;
-        await this.processTicketData(establishment);
-        confirmSubscription.unsubscribe();
-      });
-  
-      const cancelSubscription = this.alertComponent.onCancel.subscribe(() => {
-        this.isConfirmingEstablishment = false;
-       // this.alertComponent.cancel();
-        cancelSubscription.unsubscribe();
-        this.isLoading = false;  // Spinner se detiene si se cancela
-      });
-  
-    } catch (error) {
-      console.error('Error procesando el OCR:', error);
-      this.isLoading = false;
     }
-  }
-  
-  
+
+    this.isLoading = true;  // Spinner empieza a girar
+    this.disableButtons();  // Desactivar todos los botones, incluido el de selección de archivo
+
+
+    try {
+        const worker = await createWorker('spa');
+        await worker.reinitialize();
+        const image = await this.convertToImage(this.ticketImage);
+        const { data: { text } } = await worker.recognize(image);
+
+        this.ocrResult = text.trim();
+        console.log('Texto del tiquet:', this.ocrResult);
+
+        if (!this.ocrResult) {
+          const confirmMessage = this.translate.instant('TICKET_PROCESSING_ERROR');
+          this.alertComponent.showAlerts(confirmMessage, 'error');
+          this.isLoading = false;  // Spinner se detiene si falla el OCR
+          setTimeout(() => {
+            this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado
+            this.enableButtons();  // Reactivar todos los botones
+          }, 2500);
+          return;
+        }
+
+        // Extraer el establecimiento
+        const establishmentRaw = this.extractEstablishment(this.ocrResult.split('\n'));
+        const establishment = this.cleanSupermarketName(establishmentRaw);
+        const confirmMessage = `¿Se detectó correctamente el establecimiento como ${establishment}?`;
+
+        this.isConfirmingEstablishment = true; // Congelar el spinner mientras aparece el mensaje  
+        this.alertComponent.showAlerts(confirmMessage, 'confirm');
+
+        const confirmSubscription = this.alertComponent.onConfirm.subscribe(async () => {
+            this.isConfirmingEstablishment = false;  // Reanudar el spinner
+
+            // Verificar si el establecimiento es válido antes de continuar
+            if (establishment === 'OTROS_SUPERMERCADOS' || establishment === 'OTROSSUPERMERCADOS' || !establishment) {
+                console.log('El tiquet no se puede procesar porque el establecimiento no es válido.');
+
+                setTimeout(() => {
+                    const confirmMessage = 'El tiquet no se puede procesar porque el establecimiento no es válido.';
+                    this.alertComponent.showAlerts(confirmMessage, 'error');
+                    this.isLoading = false;  // Detener el spinner ya que no se subirá nada
+
+                    // Mostrar el mensaje de error y limpiar los datos después de 2.5 segundos
+                    setTimeout(() => {
+                        this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado          
+                        this.clearProcessedData();     // Limpiar la pantalla
+                        this.enableButtons();
+                    }, 2500);
+                }, 0);  // Usamos setTimeout para forzar la detección de cambios
+
+            } else {
+                // Si el establecimiento es válido, continúa con el proceso de subida
+                this.isLoading = true;  // Spinner vuelve a girar
+                await this.processTicketData(establishment);  // Procesar los datos del tiquet
+            }
+
+            // Desuscribir la confirmación solo después de terminar de procesar
+            confirmSubscription.unsubscribe();
+            cancelSubscription.unsubscribe();  // En caso de que se confirme, también cancelar el "No"
+        });
+
+        const cancelSubscription = this.alertComponent.onCancel.subscribe(() => {
+          this.isConfirmingEstablishment = false;
+          
+
+
+          // Limpia los datos inmediatamente
+          this.clearProcessedData(); // Limpiar la pantalla inmediatamente
+          const cancelMessage = this.translate.instant('USER_CANCELLED');
+          
+          // Mostrar el mensaje de cancelación después de 2.5 segundos
+          setTimeout(() =>{ 
+            this.alertComponent.showAlerts(cancelMessage, 'info');
+              this.alertComponent.cancel();
+          },1500);
+      
+          this.isLoading = false;  // Spinner se detiene si se cancela
+      
+          // Cancelar las suscripciones
+          cancelSubscription.unsubscribe();
+          confirmSubscription.unsubscribe();  // En caso de que se cancele, también cancelar el "Sí"
+      });
+      
+
+    } catch (error) {
+        console.error('Error procesando el OCR:', error);
+        this.isLoading = false;
+        this.enableButtons();
+    }
+    this.isLoading = false;
+}  
   
 
   // Método para desactivar los botones mientras se procesa el tiquet
   disableButtons() {
     this.isFileUpload = false;
     this.isCameraCapture = false;
+    
+      // Desactivar botón de selección de archivo si está visible
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      console.log('fileInput');
+      fileInput.disabled = true; // Desactivar el botón de selección de archivo
+    }
   }
 
   // Método para habilitar los botones
   enableButtons() {
     this.isFileUpload = true;
     this.isCameraCapture = true;
+      // Reactivar botón de selección de archivo si está visible
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.disabled = false; // Reactivar el botón de selección de archivo
+    }
   }
 
   async convertToImage(ticketImage: string | ArrayBuffer | null): Promise<HTMLImageElement> {
@@ -213,19 +270,20 @@ export class ArticulosTiquetComponent {
     }
       // Si el patrón no se definió, podemos usar un patrón por defecto o evitar el procesamiento.
       if (!itemPattern) {
-        this.alertComponent.showAlerts('El tiquet no se puede leer correctamente, vuelva a subir una imagen.', 'error');
-        
+        const confirmMessage = `TICKET_READ_ERROR`;
+        this.alertComponent.showAlerts(confirmMessage, 'warning');
         // Esperar 2.5 segundos para limpiar la pantalla
         setTimeout(() => {
           this.alertComponent.cancel(); // Oculta el mensaje después del tiempo especificado
           this.clearProcessedData();    // Limpia la pantalla (imagen, OCR, artículos)
-        }, 2500);
-        
+        });
+        this.alertComponent.showAlerts(confirmMessage, 'warning');
         return; // Evitar continuar el procesamiento si no se define el patrón
       }
   
     const collectionRef = this.firestoreService.getOrCreateCollection(establishment);
-  
+    
+    // Procesamos cada línea del OCR según el patrón del establecimiento
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
 
@@ -364,14 +422,16 @@ export class ArticulosTiquetComponent {
     }
 
     this.isLoading = false; // Spinner detenido
+    console.log(`El proceso ha finalizado correctamente. Se han subido ${successfulUploads} artículos.`);
 
     // Mostrar el mensaje de éxito
-    this.alertComponent.showAlerts(`El proceso ha finalizado correctamente. Se han subido ${successfulUploads} artículos.`, 'success');
+    const confirmMessage = `PROCESS_COMPLETED_SUCCESS ${successfulUploads} ITEMS`;
+    this.alertComponent.showAlerts(confirmMessage, 'success');
 
     // Esperar 2.5 segundos antes de limpiar los datos
     setTimeout(() => {
       this.alertComponent.cancel();  // Ocultar el mensaje      
-    }, 2500);
+    });
     this.clearProcessedData();     // Limpiar la pantalla después de que desaparezca el mensaje
 }
 

@@ -137,6 +137,13 @@
   "OCR_RESULT": "Resultado del OCR",
   "DETECTED_ITEMS": "Artículos detectados",
   "UPLOADING_ITEMS": "Subiendo artículos a la base de datos...",
-  "GO_BACK": "Volver"
+  "GO_BACK": "Volver",
+  "TICKET_PROCESSING_ERROR": "No se pudo procesar el tiquet. Intente nuevamente.",
+  "ESTABLISHMENT_DETECTED": "Se detectó correctamente el establecimiento como ",
+  "USER_CANCELLED": "Cancelado por el usuario.",
+  "TICKET_READ_ERROR": "El tiquet no se puede leer correctamente, vuelva a subir una imagen.",
+  "PROCESS_COMPLETED_SUCCESS": "El proceso ha finalizado correctamente. Se han subido.",
+  "ITEMS": "Articulos"
+
 
 }
