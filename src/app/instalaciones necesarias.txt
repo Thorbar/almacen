@@ -16,3 +16,8 @@ npm install tesseract.js@latest
 
 
 
+
+
+//instalado en noviembre, despues de perder gran aprte del codigo por tenerlo en local del pc del curro
+
+npm install pdfjs-dist

@@ -1,11 +1,14 @@
 <h2>{{ 'SHOPPING_LIST' | translate }}</h2>
 
+<!-- Componente de alerta -->
+<app-alert></app-alert>
+
 <!-- Tabla para mostrar los artículos con stock bajo -->
 <div class="stock-table-container">
   <table class="stock-table">
     <thead>
       <tr>
-        <th>{{ 'ARTICLE_ID' | translate }}</th>
+        <!--  <th>{{ 'ARTICLE_ID' | translate }}</th> -->
         <th>{{ 'DESCRIPTION' | translate }}</th>
         <th>{{ 'ESTABLISHMENT' | translate }}</th>
         <th>{{ 'PRICE' | translate }}</th>
@@ -16,7 +19,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let producto of productos$ | async" [ngClass]="{'out-of-stock': producto.cantidadStock === 0}">
-        <td>{{ producto.id }}</td>
+        <!-- <td>{{ producto.id }}</td> -->
         <td>{{ producto.descripcion }}</td>
         <td>{{ producto.establecimiento }}</td>
         <td>{{ producto.precio | currency }}</td>

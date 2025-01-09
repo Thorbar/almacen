@@ -21,12 +21,11 @@ export class AlertComponent implements OnInit {
     this.showAlert = false; // Asegúrate de que la alerta no se muestre al inicio
   }
   // Método para mostrar la alerta
-  showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'confirm' | 'soli') {
+  showAlerts(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'test' | 'soli' | 'confirm') {
     this.message = message;
     this.type = type;
     this.showAlert = true;
     this.isConfirm = this.type === 'confirm';
-
   }
   
   confirm() {
@@ -38,5 +37,9 @@ export class AlertComponent implements OnInit {
   cancel() {
     this.onCancel.emit();
     this.showAlert = false;
+  }
+  // Nueva función cancelAlert que será llamada desde el enlace
+  cancelAlert() {
+    this.cancel();  // Llamamos al método cancel() cuando se hace clic en el enlace
   }
 }

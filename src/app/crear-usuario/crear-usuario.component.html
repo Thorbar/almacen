@@ -6,7 +6,7 @@
   <input [(ngModel)]="newUser.dob" type="date" placeholder="{{ 'DOB' | translate }}" required>
   <input [(ngModel)]="newUser.email" name="register-email" type="email" placeholder="{{ 'EMAIL' | translate }}" required>
   <input [(ngModel)]="newUser.username" name="register-user" type="text" placeholder="{{ 'USERNAME' | translate }}" autocomplete="off"  required>
-  <input [(ngModel)]="newUser.passwordRegister" type="password" style="display:none" name="fakepassword" placeholder="{{ 'PASSWORD' | translate }}" autocomplete="off"  required>
+  <input [(ngModel)]="newUser.passwordRegister" type="password" placeholder="{{ 'PASSWORD' | translate }}"  required>
   <input [(ngModel)]="newUser.confirmPassword" type="password" placeholder="{{ 'CONFIRM_PASSWORD' | translate }}" required>
   <input [(ngModel)]="newUser.emailPrincipal" type="email" placeholder="{{ 'EMAIL_PRINCIPAL' | translate }}">
   <div class="button-group">
@@ -15,6 +15,4 @@
   </div>
 </div>
 <!-- Muestra mensajes de error o warning de alertas al crear el usuario-->
-<div *ngIf="errorMessage" class="alert-container">
-  <app-alert [type]="alertType" [message]="errorMessage"></app-alert>
-</div>
+  <app-alert></app-alert>

@@ -118,7 +118,7 @@ export class ArticulosComponent implements OnInit {
       this.isProcessing = true;
       this.scannedResult = result;
       if (this.hasPermission) {
-        alert('Código QR detectado. ¿Deseas agregar, retirar, eliminar el producto?');
+        alert('Código QR detectado. ¿Deseas agregar o retirar el producto?');
         this.startVoiceRecognition();
       } else {
         alert('Permiso para acceder a la cámara no concedido.');
@@ -129,10 +129,8 @@ export class ArticulosComponent implements OnInit {
   // Función dinámica para determinar la colección de Firestore según la categoría
   obtenerColeccionFirestore(categoria: string): string {
     const colecciones: { [key: string]: string } = {
-      'congelado': 'Productos_Congelado',
-      'fresco': 'Productos_Fresco',
-      'limpieza': 'Productos_Limpieza',
       'seco': 'Productos_Seco',
+      'all': 'Productos_MERCADONA',
       // Agrega más colecciones según tus necesidades
     };
 
@@ -147,11 +145,7 @@ export class ArticulosComponent implements OnInit {
     } else if (command.includes('retirar')) {
       this.action = 'retirar';
       this.isProcessing = true;
-      this.handleRetirar();
-    } else if (command.includes('eliminar')) {
-      this.action = 'eliminar';
-      this.isProcessing = true;
-      this.handleEliminar();
+      this.handleRetirar();    
     } else {
       alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar".');
     }
@@ -513,35 +507,6 @@ export class ArticulosComponent implements OnInit {
     }
   }
 
-  handleEliminar() {
-    if (this.scannedResult) {
-      // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco');
-
-      this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
-        .snapshotChanges()
-        .pipe(
-          map(actions => actions.map(a => {
-            const data = a.payload.doc.data() as Producto;
-            const docId = a.payload.doc.id;
-            return { ...data, docId };
-          })),
-          take(1)
-        )
-        .subscribe((productos: (Producto & { docId: string })[]) => {
-          if (productos.length > 0) {
-            const producto = productos[0];
-            this.eliminarProducto(producto);
-          } else {
-            alert('Producto no encontrado.');
-            this.isProcessing = false;
-          }
-        });
-    } else {
-      alert('No se ha detectado ningún código.');
-      this.isProcessing = false;
-    }
-  }
   volver() {
     this.router.navigate(['/main-site']);
   }

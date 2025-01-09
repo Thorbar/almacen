@@ -1,13 +1,14 @@
 <h2>{{ 'APP_TITLE' | translate }}</h2>
 
+<!-- Componente de alerta -->
+<app-alert></app-alert>
+
 <div class="button-container">
-  <button (click)="consultarBaseDatos()">{{ 'CONSULTAR' | translate }}</button>
+  <button [disabled]="bloqueadoStock" (click)="consultarBaseDatos()">{{ 'CONSULTAR' | translate }}</button>
   <button (click)="comprobarArticulos()">{{ 'GESTION_ARTICULOS' | translate }}</button>
   <button (click)="comprobarArticulosTiquet()">{{ 'GESTION_ARTICULOS_TIQUET' | translate }}</button>
-  <button (click)="listaCompra()">{{ 'LISTA_COMPRA' | translate }}</button>
+  <button [disabled]="bloqueadoLista" (click)="listaCompra()">{{ 'LISTA_COMPRA' | translate }}</button>
   <button (click)="cerrarSesion()">{{ 'CERRAR_SESION' | translate }}</button>
-  <app-alert></app-alert>
-
 </div>
 
 <!-- Spinner de carga -->
@@ -17,3 +18,5 @@
   </div>
   <p>{{ 'LOADING' | translate }}</p>
 </div>
+
+

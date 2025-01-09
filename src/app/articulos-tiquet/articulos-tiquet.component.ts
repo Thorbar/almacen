@@ -8,7 +8,6 @@ import { AlertComponent } from '../alert/alert.component';
 import { TranslateService } from '@ngx-translate/core';
 import { ChangeDetectorRef } from '@angular/core';
 
-
 interface TicketItem {
   description: string;
   quantity: number;
@@ -18,6 +17,7 @@ interface TicketItem {
   fechaCracion?: Date;
   fechaUltimaCompra?: Date;
   fechaUltimoRetiro?: Date;
+  internalCode?: string; // Agrega este campo al modelo
 }
 
 @Component({
@@ -36,10 +36,10 @@ export class ArticulosTiquetComponent {
   isFileUpload = false;
   isCameraCapture = false;
   selectedFileName: string = ''; // Nombre del archivo seleccionado
+  email: string = '';
   
   
   @ViewChild(AlertComponent) alertComponent!: AlertComponent;
-
   constructor(
     private firestoreService: FirestoreService,
     private productService: ProductService,
@@ -48,23 +48,33 @@ export class ArticulosTiquetComponent {
     private cdr: ChangeDetectorRef,
     private zone: NgZone
   ) {
-    const savedLanguage = localStorage.getItem('selectedLanguage');
+    const savedLanguage = localStorage.getItem('selectedLanguage');    
     this.selectedLanguage = savedLanguage || 'es';
     this.translate.setDefaultLang(this.selectedLanguage);
     this.translate.use(this.selectedLanguage);
 
    }
+  ngOnInit() {
+    // Recuperar el email desde sessionStorage al cargar el componente
+    const email = sessionStorage.getItem('userEmail');
+    if (email) {
+      this.email = email;
+      console.log('Email recuperado:', email);
+    } else {
+      console.error('No se encontró el email en sessionStorage');
+    }
+  }
 
    cleanSupermarketName(name: string): string {
     // Reemplazamos caracteres como comas, guiones y espacios adicionales
     return name.replace(/[^a-zA-Z\s]/g, '').trim().toUpperCase();
   }
   
-
   selectFileMethod() {
     this.isFileUpload = true;
     this.isCameraCapture = false;
   }
+
   captureImageMethod() {
     this.isFileUpload = false;
     this.isCameraCapture = true;
@@ -86,7 +96,6 @@ export class ArticulosTiquetComponent {
     }
   }
 
-
   onCameraImageSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -100,106 +109,69 @@ export class ArticulosTiquetComponent {
 
   async processTicket() {
     if (!this.ticketImage) {
-        const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');
-        this.alertComponent.showAlerts(confirmMessage, 'warning');
-        setTimeout(() => this.alertComponent.cancel(), 2500);
-        return;
+      const confirmMessage = this.translate.instant('MUST_UPLOAD_IMAGE');
+      this.alertComponent.showAlerts(confirmMessage, 'warning');
+      setTimeout(() => this.alertComponent.cancel(), 2500);
+      return;
     }
 
     this.isLoading = true;  // Spinner empieza a girar
     this.disableButtons();  // Desactivar todos los botones, incluido el de selección de archivo
 
-
     try {
-        const worker = await createWorker('spa');
-        await worker.reinitialize();
-        const image = await this.convertToImage(this.ticketImage);
-        const { data: { text } } = await worker.recognize(image);
+      const worker = await createWorker('spa');
+      await worker.reinitialize();
+      const image = await this.convertToImage(this.ticketImage);
+      const { data: { text } } = await worker.recognize(image);
 
-        this.ocrResult = text.trim();
-        console.log('Texto del tiquet:', this.ocrResult);
+      this.ocrResult = text.trim();
+      this.ocrResult = this.ocrResult.replace(/(\d),(\d)/g, '$1.$2');
+      console.log('Texto del tiquet:', this.ocrResult);
 
-        if (!this.ocrResult) {
-          const confirmMessage = this.translate.instant('TICKET_PROCESSING_ERROR');
+      if (!this.ocrResult) {
+        const confirmMessage = this.translate.instant('TICKET_PROCESSING_ERROR');
+        this.alertComponent.showAlerts(confirmMessage, 'error');
+        this.isLoading = false;  // Spinner se detiene si falla el OCR
+        setTimeout(() => {
+          this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado
+          this.enableButtons();  // Reactivar todos los botones
+        }, 2500);
+        return;
+      }
+
+      // Extraer el establecimiento
+      const establishmentRaw = this.extractEstablishment(this.ocrResult.split('\n'));
+      const establishment = this.cleanSupermarketName(establishmentRaw);
+
+      // Procesar directamente sin confirmar al usuario
+      if (establishment === 'OTROS_SUPERMERCADOS' || establishment === 'OTROSSUPERMERCADOS' || !establishment) {
+        console.log('El tiquet no se puede procesar porque el establecimiento no es válido.');
+
+        setTimeout(() => {
+          const confirmMessage = 'El tiquet no se puede procesar porque el establecimiento no es válido.';
           this.alertComponent.showAlerts(confirmMessage, 'error');
-          this.isLoading = false;  // Spinner se detiene si falla el OCR
+          this.isLoading = false;  // Detener el spinner ya que no se subirá nada
+
+          // Mostrar el mensaje de error y limpiar los datos después de 2.5 segundos
           setTimeout(() => {
-            this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado
-            this.enableButtons();  // Reactivar todos los botones
+            this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado          
+            this.clearProcessedData();     // Limpiar la pantalla
+            this.enableButtons();
           }, 2500);
-          return;
-        }
-
-        // Extraer el establecimiento
-        const establishmentRaw = this.extractEstablishment(this.ocrResult.split('\n'));
-        const establishment = this.cleanSupermarketName(establishmentRaw);
-        const confirmMessage = `¿Se detectó correctamente el establecimiento como ${establishment}?`;
-
-        this.isConfirmingEstablishment = true; // Congelar el spinner mientras aparece el mensaje  
-        this.alertComponent.showAlerts(confirmMessage, 'confirm');
-
-        const confirmSubscription = this.alertComponent.onConfirm.subscribe(async () => {
-            this.isConfirmingEstablishment = false;  // Reanudar el spinner
-
-            // Verificar si el establecimiento es válido antes de continuar
-            if (establishment === 'OTROS_SUPERMERCADOS' || establishment === 'OTROSSUPERMERCADOS' || !establishment) {
-                console.log('El tiquet no se puede procesar porque el establecimiento no es válido.');
-
-                setTimeout(() => {
-                    const confirmMessage = 'El tiquet no se puede procesar porque el establecimiento no es válido.';
-                    this.alertComponent.showAlerts(confirmMessage, 'error');
-                    this.isLoading = false;  // Detener el spinner ya que no se subirá nada
-
-                    // Mostrar el mensaje de error y limpiar los datos después de 2.5 segundos
-                    setTimeout(() => {
-                        this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado          
-                        this.clearProcessedData();     // Limpiar la pantalla
-                        this.enableButtons();
-                    }, 2500);
-                }, 0);  // Usamos setTimeout para forzar la detección de cambios
-
-            } else {
-                // Si el establecimiento es válido, continúa con el proceso de subida
-                this.isLoading = true;  // Spinner vuelve a girar
-                await this.processTicketData(establishment);  // Procesar los datos del tiquet
-            }
-
-            // Desuscribir la confirmación solo después de terminar de procesar
-            confirmSubscription.unsubscribe();
-            cancelSubscription.unsubscribe();  // En caso de que se confirme, también cancelar el "No"
-        });
-
-        const cancelSubscription = this.alertComponent.onCancel.subscribe(() => {
-          this.isConfirmingEstablishment = false;
-          
-
-
-          // Limpia los datos inmediatamente
-          this.clearProcessedData(); // Limpiar la pantalla inmediatamente
-          const cancelMessage = this.translate.instant('USER_CANCELLED');
-          
-          // Mostrar el mensaje de cancelación después de 2.5 segundos
-          setTimeout(() =>{ 
-            this.alertComponent.showAlerts(cancelMessage, 'info');
-              this.alertComponent.cancel();
-          },1500);
-      
-          this.isLoading = false;  // Spinner se detiene si se cancela
-      
-          // Cancelar las suscripciones
-          cancelSubscription.unsubscribe();
-          confirmSubscription.unsubscribe();  // En caso de que se cancele, también cancelar el "Sí"
-      });
-      
+        }, 0);  // Usamos setTimeout para forzar la detección de cambios
+      } else {
+        // Si el establecimiento es válido, continúa con el proceso de subida
+        this.isLoading = true;  // Spinner vuelve a girar
+        await this.processTicketData(establishment);  // Procesar los datos del tiquet
+      }
 
     } catch (error) {
-        console.error('Error procesando el OCR:', error);
-        this.isLoading = false;
-        this.enableButtons();
+      console.error('Error procesando el OCR:', error);
+      this.isLoading = false;
+      this.enableButtons();
     }
     this.isLoading = false;
-}  
-  
+  }
 
   // Método para desactivar los botones mientras se procesa el tiquet
   disableButtons() {
@@ -280,9 +252,17 @@ export class ArticulosTiquetComponent {
         this.alertComponent.showAlerts(confirmMessage, 'warning');
         return; // Evitar continuar el procesamiento si no se define el patrón
       }
-  
-    const collectionRef = this.firestoreService.getOrCreateCollection(establishment);
-    
+    console.log('Email recuperado 2:', this.email);
+
+    // Verificar si tenemos un email válido antes de proceder
+    if (!this.email) {
+      const errorMessage = this.translate.instant('EMAIL_MISSING_ERROR');
+      this.alertComponent.showAlerts(errorMessage, 'error');
+      return;
+    }
+
+    const collectionRef = this.firestoreService.getOrCreateCollection(this.email);
+
     // Procesamos cada línea del OCR según el patrón del establecimiento
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
@@ -306,7 +286,7 @@ export class ArticulosTiquetComponent {
           item = {
             description: itemMatch[2].trim(),
             quantity: parseInt(itemMatch[1], 10),
-            price: parseFloat(itemMatch[3].replace(',', '.')), // Precio unitario
+            price: parseFloat(itemMatch[3].replace('', '.')), // Precio unitario
             establecimiento: establishment,
             fechaUltimaCompra: new Date(),
           };
@@ -392,6 +372,8 @@ export class ArticulosTiquetComponent {
 
     for (const item of items) {
       try {
+        item.internalCode = this.generateInternalCode(item); // Genera el código solo si no existe
+
         const { exists, id, itemDoc } = await this.firestoreService.checkIfItemExists(item.description);
 
         if (exists && itemDoc) {
@@ -412,7 +394,8 @@ export class ArticulosTiquetComponent {
             item.price,
             item.barcode || 'N/A',
             item.establecimiento || 'Desconocido',
-            item.fechaUltimaCompra || new Date()
+            item.fechaUltimaCompra || new Date(),
+            item.internalCode
           );
         }
         successfulUploads++;
@@ -434,6 +417,16 @@ export class ArticulosTiquetComponent {
     });
     this.clearProcessedData();     // Limpiar la pantalla después de que desaparezca el mensaje
 }
+
+  // Función para generar un código interno único para el artículo
+  private generateInternalCode(item: TicketItem): string {
+    // Se puede generar un código basado en el nombre del artículo y un valor aleatorio o timestamp
+    const timestamp = new Date().getTime();  // Obtiene la hora actual en milisegundos
+    const randomPart = Math.floor(Math.random() * 10000); // Genera una parte aleatoria
+    const code = `${item.description.substring(0, 3).toUpperCase()}-${timestamp}-${randomPart}`;
+
+    return code;
+  }
 
 
   clearProcessedData() {

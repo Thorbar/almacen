@@ -70,3 +70,6 @@ button {
     width: 20%; /* Ajusta el tamaño al 20% */
   }
 }
+.out-of-stock {
+  color: red;
+}

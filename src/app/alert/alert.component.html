@@ -1,6 +1,6 @@
 <div *ngIf="showAlert" class="alert-overlay">
   <div class="alert" [ngClass]="type">
-    <div class="alert-message">
+    <div class="alert-message" [innerHTML]="message">
       {{ message }}
     </div>
     <div *ngIf="isConfirm" class="alert-actions">

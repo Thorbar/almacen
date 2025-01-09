@@ -1,5 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, ViewChild } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection, DocumentData } from '@angular/fire/compat/firestore';
+
+
 
 @Injectable({
   providedIn: 'root'
@@ -7,6 +9,7 @@ import { AngularFirestore, AngularFirestoreCollection, DocumentData } from '@ang
 export class FirestoreService {
 
   private collections: { [key: string]: AngularFirestoreCollection<DocumentData> };
+  
 
   constructor(private firestore: AngularFirestore) {
     this.collections = this.initializeCollections();
@@ -14,18 +17,17 @@ export class FirestoreService {
 
   private initializeCollections(): { [key: string]: AngularFirestoreCollection<DocumentData> } {
     return {
-      congelado: this.firestore.collection('Productos_Congelado'),
-      fresco: this.firestore.collection('Productos_Fresco'),
-      limpieza: this.firestore.collection('Productos_Limpieza'),
-      tiquet: this.firestore.collection('Productos_Tiquet'),
-      seco: this.firestore.collection('Productos_Seco'),
+      all: this.firestore.collection('Almacen_de_prueba')      
     };
   }
 
-  getOrCreateCollection(collectionName: string): AngularFirestoreCollection<DocumentData> {
+  // Función para obtener o crear la colección de un usuario específico
+  getOrCreateCollection(userEmail: string): AngularFirestoreCollection<DocumentData> {   
+    const collectionName = `Almacen_${userEmail}`;
+
     if (!this.collections[collectionName]) {
-      this.collections[collectionName] = this.firestore.collection(`Productos_${collectionName}`);
-      console.log(`Colección creada: Productos_${collectionName}`);
+      this.collections[collectionName] = this.firestore.collection(collectionName);
+      console.log(`Colección creada: ${collectionName}`);
     }
     return this.collections[collectionName];
   }
@@ -83,7 +85,8 @@ export class FirestoreService {
     price: number,
     codigo: string,
     establecimiento: string,
-    fechaUltimaCompra: Date
+    fechaUltimaCompra: Date,
+    internalCode: string // Añadimos el nuevo campo
   ) {
     try {
       const newItem = {
@@ -93,7 +96,8 @@ export class FirestoreService {
         codigo: codigo,
         establecimiento: establecimiento,
         fechaCreacion: new Date(),
-        fechaUltimaCompra: fechaUltimaCompra
+        fechaUltimaCompra: fechaUltimaCompra,
+        internalCode: internalCode // Guardamos el campo
       };
 
       await collectionRef.add(newItem);

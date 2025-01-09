@@ -119,9 +119,9 @@
   "RESET_EMAIL_FAILED": "Failed to send password reset email.",
   "ENTER_EMAIL_OR_USERNAME": "Please enter your email or username.",
   "INVALID_EMAIL": "Invalid email.",
-    "CONFIRM_PASSWORD_RESET": "Are you sure you want to reset your password?",
+  "CONFIRM_PASSWORD_RESET": "Are you sure you want to reset your password?",
   "SEND_EMAIL_CONFIRMATION": "An email has been sent to {{email}} to change your password.",
-  "WELCOME" : "Welcome",
+  "WELCOME": "Welcome",
   "SCAN_TIQUET": "Scan Shopping ticket",
   "MUST_UPLOAD_IMAGE": "You must upload an image before processing the ticket.",
   "GESTION_ARTICULOS_TIQUET": "Ticket processing",
@@ -141,7 +141,8 @@
   "USER_CANCELLED": "Cancelled by the user.",
   "TICKET_READ_ERROR": "The ticket cannot be read correctly, please upload an image again.",
   "PROCESS_COMPLETED_SUCCESS": "The process has been successfully completed. Have been uploaded.",
-  "ITEMS": "Items"
+  "ITEMS": "Items",
+  "ONLY_IMAGE": "The program only accepts images, please take a screenshot of the PDF or document you are trying to upload."
 
 
 }

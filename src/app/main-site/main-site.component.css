@@ -47,3 +47,9 @@ button {
     width: 20%; /* Ajusta el tamaño al 20% */
   }
 }
+/* Estilo cuando el botón está deshabilitado */
+button:disabled {
+  background-color: #cccccc; /* Color de fondo gris claro */
+  color: #666666; /* Color de texto gris oscuro */
+  cursor: not-allowed; /* Cursor no permitido */
+}

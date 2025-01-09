@@ -1,22 +1,22 @@
-<div class = 'prova'>
-<div *ngIf="showWelcome">
-  <h1>{{ 'WELCOME' | translate }}</h1>
-   <div>
-  <input [(ngModel)]="emailLogin"name="login-email" type="text" placeholder="Email" required>
-</div>
-  <!-- Selector de contraseña -->
-  <input [(ngModel)]="passwordLogin" type="password"  name="login-password" placeholder="Password" required>
+<div class='prova'>
+  <div *ngIf="showWelcome">
+    <h1>{{ 'WELCOME' | translate }}</h1>
+    <div>
+      <input [(ngModel)]="emailLogin" name="login-email" type="text" placeholder="Email" required>
+    </div>
+    <!-- Selector de contraseña -->
+    <input [(ngModel)]="passwordLogin" type="password" name="login-password" placeholder="Password" required>
     <!-- Enlace para recuperar contraseña -->
-  <div>
-    <a href="#" (click)="recoverPassword()" >{{ 'FORGOT_PASSWORD' | translate }}</a>
+    <div>
+      <a href="#" (click)="recoverPassword()">{{ 'FORGOT_PASSWORD' | translate }}</a>
+    </div>
+    <app-alert></app-alert>
+    <!-- Grupo de botones para login y crear usuario -->
+    <div class="button-group">
+      <button (click)="login()">{{ 'LOGIN' | translate }}</button>
+      <button (click)="createUser()">{{ 'CREATE_USER' | translate }}</button>
+    </div>
   </div>
-  <app-alert></app-alert>
-  <!-- Grupo de botones para login y crear usuario -->
-  <div class="button-group">
-    <button (click)="login()">{{ 'LOGIN' | translate }}</button>
-    <button (click)="createUser()">{{ 'CREATE_USER' | translate }}</button>
-  </div>
-</div>
 </div>
 <!-- Spinner de carga -->
 <div *ngIf="loading" class="loading-container">
@@ -25,6 +25,8 @@
   </div>
   <p>{{ 'LOADING' | translate }}</p>
 </div>
+<!-- stock-actual.component.html -->
+<app-alert></app-alert>
 
 <!-- Selector de idioma con la bandera y el desplegable -->
 <div class="language-selector">

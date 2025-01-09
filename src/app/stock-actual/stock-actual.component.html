@@ -1,12 +1,7 @@
 <h2>{{ 'STOCK_TITLE' | translate }}</h2>
 
-<!-- Selector de colección -->
-<div>
-  <button (click)="changeCollection('Productos_Congelado')">{{ 'FROZEN' | translate }}</button>
-  <button (click)="changeCollection('Productos_Fresco')">{{ 'FRESH' | translate }}</button>
-  <button (click)="changeCollection('Productos_Seco')">{{ 'DRY' | translate }}</button>
-  <button (click)="changeCollection('Productos_Limpieza')">{{ 'CLEAN' | translate }}</button>
-</div>
+<!-- Componente de alerta -->
+<app-alert></app-alert>
 
 <!-- Tabla para mostrar y editar los datos -->
 <div class="stock-table-container">
@@ -25,7 +20,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let producto of productos$ | async">
-        <td>{{ producto.id }}</td>
+        <td>{{ producto.internalCode }}</td>
         <td>
           <input [(ngModel)]="producto.descripcion" placeholder="Descripción" />
         </td>
@@ -41,6 +36,7 @@
         <td>{{ producto.fechaCreacion | date: 'short' }}</td>
         <td>{{ producto.fechaUltimaCompra | date: 'short' }}</td>
         <td>
+          <!-- Botón individual si lo necesitas (lo puedes dejar vacío si no lo deseas) -->
           <button (click)="saveChanges(producto)">{{ 'SAVE' | translate }}</button>
         </td>
       </tr>

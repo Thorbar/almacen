@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/compat/firestore';
-import { Observable, combineLatest } from 'rxjs';
+import { Observable, } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Producto } from '../articulos/articulos.component';
 import { Router } from '@angular/router';
 import firebase from 'firebase/compat/app';
+import { AlertComponent } from '../alert/alert.component';
+
 
 @Component({
   selector: 'app-lista-compra',
@@ -14,100 +16,97 @@ import firebase from 'firebase/compat/app';
 export class ListaCompraComponent implements OnInit {
   selectedLanguage: string = 'es';
   productos$?: Observable<Producto[]>;
+  selectedCollection: string = ''; // Colección predeterminada
+  email: string = '';
+
+  @ViewChild(AlertComponent) alertComponent!: AlertComponent;
+
 
   constructor(
     private firestore: AngularFirestore,
     private router: Router,
-  ) {}
+  ) { }
+  /*
+  ngAfterViewInit() {
+    if (!this.alertComponent) {
+      console.error('AlertComponent no se inicializó correctamente.');
+    } else {
+      this.changeCollection(this.selectedCollection);
+      // Llama a changeCollection después de asegurarte de que alertComponent está disponible
 
+    }
+  }
+  */
   ngOnInit() {
-    const categorias = [
-      'Productos_Congelado',
-      'Productos_Fresco',
-      'Productos_Seco',
-      'Productos_Limpieza'
-    ];
 
-    const observables = categorias.map(categoria =>
-      this.firestore.collection<Producto>(categoria, ref => ref.where('cantidadStock', '<=', 1)//.orderBy('establecimiento')
+    // Recuperar el email desde sessionStorage al cargar el componente
+    const email = sessionStorage.getItem('userEmail');
+    if (email) {
+      this.email = email;
+    } else {
+      console.error('No se encontró el email en sessionStorage');
+    }
+
+    this.selectedCollection = `Almacen_${email}`;
+    this.changeCollection(this.selectedCollection); // Inicializar con la colección predeterminada
+
+  }
+  changeCollection(collection: string) {
+    this.selectedCollection = collection;
+
+    this.productos$ = this.firestore.collection<any>(collection, ref =>
+      ref
+        .where('cantidadStock', '<=', 1)
+        .orderBy('cantidadStock')
+        .orderBy('establecimiento')
+        .orderBy('descripcion')        
     ).valueChanges().pipe(
-        map(productos =>
-          productos.map(producto => {
-            const fechaCreacion = producto.fechaCreacion instanceof firebase.firestore.Timestamp
-              ? producto.fechaCreacion.toDate()
-              : producto.fechaCreacion;
+      map(productos =>
+        productos.map(producto => {
+          const fechaCreacion = producto.fechaCreacion instanceof firebase.firestore.Timestamp
+            ? producto.fechaCreacion.toDate()
+            : producto.fechaCreacion;
 
-            const fechaUltimaCompra = producto.fechaUltimaCompra instanceof firebase.firestore.Timestamp
-              ? producto.fechaUltimaCompra.toDate()
-              : producto.fechaUltimaCompra;
+          const fechaUltimaCompra = producto.fechaUltimaCompra instanceof firebase.firestore.Timestamp
+            ? producto.fechaUltimaCompra.toDate()
+            : producto.fechaUltimaCompra;
 
-            return {
-              ...producto,
-              fechaCreacion,
-              fechaUltimaCompra
-            };
-          })
-        )
+          // Aquí agregamos internalCode (asegúrate de tenerlo cuando crees los productos)
+          return {
+            ...producto,
+            fechaCreacion,
+            fechaUltimaCompra,
+            internalCode: producto.internalCode || '1' // Asegúrate de asignar un valor si no está presente
+          };
+        })
       )
     );
+    //Creamos indice ya que usamos orderby en la query
+    this.productos$.subscribe({
 
-    this.productos$ = combineLatest(observables).pipe(
-      map(arrays => arrays.flat()) // Combina todos los arrays en un solo array
-    );
+      next: (productos) => {
+        console.log('Productos cargados:', productos);
+      },
+      error: (error) => {
+        const ahora = new Date().getTime();
+        localStorage.setItem('bloqueo_lista', ahora.toString());
+        
+        const ruta = 'https://console.firebase.google.com/u/0/project/almacen-dd393/firestore/databases/-default-/indexes?create_composite=CmNwcm9qZWN0cy9hbG1hY2VuLWRkMzkzL2RhdGFiYXNlcy8oZGVmYXVsdCkvY29sbGVjdGlvbkdyb3Vwcy9BbG1hY2VuX2RhdmlkcmliZTg2QGdtYWlsLmNvbS9pbmRleGVzL18QARoRCg1jYW50aWRhZFN0b2NrEAEaEwoPZXN0YWJsZWNpbWllbnRvEAEaDwoLZGVzY3JpcGNpb24QARoMCghfX25hbWVfXxAB';
+        // Se ha añadido el enlace con el evento (click) para que ejecute la función cancel cuando se haga clic
+        const crearIndice = `Se necesita crear un índice para mostrar los artículos la primera vez, visite la siguiente ruta entrando con su email registrado:<br> <a href="${ruta}" target="_blank" >Crear índice</a>`;
+
+        this.alertComponent.showAlerts(crearIndice, 'warning');
+        setTimeout(() => {
+          this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado
+          this.volver()
+        }, 5000);
+      }
+    });
   }
 
- 
-
-  guardarCambios(producto: Producto) {
-    const categoria = this.obtenerCategoria(producto);
-
-    // Verifica si el producto tiene un ID válido
-    if (!producto.id) {
-      console.error('ID del producto no válido:', producto.id);
-      return;
-    }
-
-    // Verifica si la categoría es válida
-    if (!categoria) {
-      console.error('Categoría del producto no válida:', categoria);
-      return;
-    }
-
-    // Intenta actualizar el documento en Firestore
-    this.firestore.collection(categoria).doc(producto.id.toString()).update({
-      establecimiento: producto.establecimiento
-    })
-      .then(() => {
-        console.log('Producto actualizado correctamente');
-      })
-      .catch(error => {
-        console.error('Error actualizando producto:', error);
-      });
-  }
 
   volver() {
     this.router.navigate(['/main-site']);
   }
 
-  obtenerCategoria(producto: Producto): string {
-    // Asegúrate de que la propiedad 'descripcion' existe y tiene un valor válido
-    if (!producto.descripcion) {
-      console.error('Descripción del producto no válida:', producto.descripcion);
-      return '';
-    }
-
-    // Comprobamos si la descripción contiene ciertas palabras clave para determinar la categoría
-    if (producto.descripcion.includes('Congelado')) {
-      return 'Productos_Congelado';
-    } else if (producto.descripcion.includes('Fresco')) {
-      return 'Productos_Fresco';
-    } else if (producto.descripcion.includes('Seco')) {
-      return 'Productos_Seco';
-    } else if (producto.descripcion.includes('Limpieza')) {
-      return 'Productos_Limpieza';
-    } else {
-      console.error('Categoría del producto no reconocida:', producto.descripcion);
-      return '';
-    }
-  }
 }

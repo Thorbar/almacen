@@ -143,7 +143,6 @@
   "USER_CANCELLED": "Cancelado por el usuario.",
   "TICKET_READ_ERROR": "El tiquet no se puede leer correctamente, vuelva a subir una imagen.",
   "PROCESS_COMPLETED_SUCCESS": "El proceso ha finalizado correctamente. Se han subido.",
-  "ITEMS": "Articulos"
-
-
+  "ITEMS": "Articulos",
+  "ONLY_IMAGE": "El programa solo acepta imágenes, por favor haga una captura del PDF o documento que está intentando subir."
 }

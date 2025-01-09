@@ -20,8 +20,6 @@ export class LoginComponent {
   private confirmSubscription!: Subscription;
   private cancelSubscription!: Subscription;
 
-
-
   // Lista de idiomas disponibles
   languages = [
     { code: 'es', label: 'Español', flag: 'assets/es.jpg' },
@@ -39,10 +37,10 @@ export class LoginComponent {
   lockoutEndTime: number | null = null;
 
   constructor(
-    private auth: AngularFireAuth,
+    private afAuth: AngularFireAuth,
     private router: Router,
     private translate: TranslateService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef    
   ) {
     const savedLanguage = localStorage.getItem('selectedLanguage');
     this.selectedLanguage = savedLanguage || 'es';
@@ -53,10 +51,19 @@ export class LoginComponent {
     this.lockoutEndTime = savedLockoutEndTime ? parseInt(savedLockoutEndTime, 10) : null;
   }
 
+
   ngOnInit() {
     this.showWelcome = true;
-    this.loading = false;    
+    this.loading = false;  
+    this.afAuth.authState.subscribe(user => {
+      if (user) {
+        console.log('Usuario autenticado', user);
+      } else {
+        console.log('Usuario no autenticado');
+      }
+    });
   }
+
 
   onLanguageChange(event: any) {
     const selectedLang = event.target.value;
@@ -95,9 +102,22 @@ export class LoginComponent {
     this.showWelcome = false;
     this.loading = true;
 
+    
+
     signInWithEmailAndPassword(auth, this.emailLogin, this.passwordLogin)
       .then((userCredential) => {
-        console.log("Login successful:", userCredential);
+        console.log("Login successful:", userCredential.user.email);
+        const email = userCredential.user.email;
+        console.log('Email', email);
+        if (userCredential.user.email) {
+
+          sessionStorage.setItem('userEmail', email || 'NA');
+          console.log('Email guardado en sessionStorage:', email || 'NA');
+
+          
+        } else {
+          console.error('El email es nulo o indefinido');
+        }
         this.router.navigate(['/main-site']);
         this.resetFailedAttempts();
       })
@@ -165,6 +185,9 @@ export class LoginComponent {
       const errorMessage = this.translate.instant('ENTER_EMAIL_OR_USERNAME');
       this.alertComponent.showAlerts(errorMessage, 'soli');
       console.log('ENTER_EMAIL_OR_USERNAME');
+      setTimeout(() => {
+        this.alertComponent.cancel();  // Oculta el mensaje después del tiempo especificado        
+      }, 2500);
       return;
     } else {
       // Mostrar alerta de confirmación

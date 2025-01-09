@@ -122,7 +122,7 @@
   "CONFIRM_PASSWORD_RESET": "Esteu segur que voleu reiniciar la contrasenya?",
   "SEND_EMAIL_CONFIRMATION": "S'ha enviat un correu electrònic a l'adreça {{email}} per canviar la contrasenya.",
   "WELCOME": "Benvingut",
-  "SCAN_TIQUET": "Escanejar tiquet de compra" ,
+  "SCAN_TIQUET": "Escanejar tiquet de compra",
   "MUST_UPLOAD_IMAGE": "Heu de carregar una imatge abans de processar el tiquet.",
   "GESTION_ARTICULOS_TIQUET": "Processar tiquets",
   "UPLOAD_TICKET": "Carregar Tiquet des de Fitxer",
@@ -141,7 +141,8 @@
   "USER_CANCELLED": "Cancel·lat per l'usuari.",
   "TICKET_READ_ERROR": "El tiquet no es pot llegir correctament, torna a pujar una imatge.",
   "PROCESS_COMPLETED_SUCCESS": "El procés ha finalitzat correctament. S'han pujat ${successfulUploads} articles.",
-  "ITEMS": "Articles"
+  "ITEMS": "Articles",
+  "ONLY_IMAGE":  "El programa només accepta imatges, sisplau faci una captura del pdf o document que està intentant pujar"
 
 
 
