@@ -42,6 +42,7 @@ export class ArticulosComponent implements OnInit {
   isProcessing: boolean = false;
   isAddingProduct: boolean = false;
   // Variable que define la colección (se determinará en función de la categoría)
+  categoriaSeleccionada: string | null = null;
   selectedCollection: string = ''; // Colección predeterminada
   email: string = '';
 
@@ -166,12 +167,7 @@ export class ArticulosComponent implements OnInit {
   //
   handleAgregar() {
     if (this.scannedResult && !this.isAddingProduct) {
-      console.log(`scannedResult`, this.scannedResult);
-      this.isAddingProduct = true;
-      console.log('ejecutando proceso de agregar');
-      const categoriaFirestore = this.obtenerColeccionFirestore();
-      console.log(`BBDD seleccionada: ${categoriaFirestore}`);
-        this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
+      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
         .snapshotChanges()
         .pipe(
           map(actions => actions.map(a => {
@@ -259,10 +255,7 @@ export class ArticulosComponent implements OnInit {
           if (producto.docId) {
             // Actualiza el producto existente
             const fechaUltimaCompra = new Date();
-            const categoriaFirestore = this.obtenerColeccionFirestore();
-            console.log(`BBDD seleccionada: ${categoriaFirestore}`);
-          
-            this.firestore.collection(categoriaFirestore).doc(producto.docId)
+            this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
               .update({
                 cantidadStock: producto.cantidadStock + cantidadNumerica,
                 precio: parseFloat(nuevoPrecio),  // Actualiza el precio con el nuevo valor
@@ -286,11 +279,7 @@ export class ArticulosComponent implements OnInit {
             // Crea un nuevo producto con la cantidad comprada
             producto.cantidadStock = cantidadNumerica;
             producto.precio = parseFloat(nuevoPrecio);
-            
-            const categoriaFirestore = this.obtenerColeccionFirestore();
-            console.log(`BBDD seleccionada: ${categoriaFirestore}`);
-
-            this.firestore.collection(categoriaFirestore)
+            this.firestore.collection(this.categoriaSeleccionada!)
               .add(producto)
               .then(() => {
                 Swal.fire({
@@ -454,9 +443,8 @@ export class ArticulosComponent implements OnInit {
         id: Date.now(),  // Usa la fecha actual como un ID simple, ajusta según tu lógica
         fechaCreacion: fechaCreacion  // Se guarda la fecha de creación
       };
-      const categoriaFirestore = this.obtenerColeccionFirestore();
-            console.log(`BBDD seleccionada: ${categoriaFirestore}`);
-      this.firestore.collection(categoriaFirestore)
+
+      this.firestore.collection(this.categoriaSeleccionada!)
         .add(nuevoProducto)
         .then(() => {
           Swal.fire({
@@ -498,9 +486,7 @@ export class ArticulosComponent implements OnInit {
   //
   handleRetirar() {
     if (this.scannedResult) {
-      const categoriaFirestore = this.obtenerColeccionFirestore();
-      console.log(`BBDD seleccionada: ${categoriaFirestore}`);
-      this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
+      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
         .snapshotChanges()
         .pipe(
           map(actions => actions.map(a => {
@@ -549,9 +535,7 @@ export class ArticulosComponent implements OnInit {
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         if (producto.cantidadStock >= cantidadNumerica) {
           const fechaUltimoRetiro = new Date(); // Se registra la fecha del último retiro
-          const categoriaFirestore = this.obtenerColeccionFirestore();
-          console.log(`BBDD seleccionada: ${categoriaFirestore}`);
-          this.firestore.collection(categoriaFirestore).doc(producto.docId)
+          this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
             .update({
               cantidadStock: producto.cantidadStock - cantidadNumerica,
               fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro
