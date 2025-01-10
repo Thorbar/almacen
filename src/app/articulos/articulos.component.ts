@@ -7,6 +7,7 @@ import { Observable, forkJoin } from 'rxjs';
 import { map, take } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { ProductService } from '../services/product.service';  // Importa el servicio
+import Swal from 'sweetalert2';
 
 
 export interface Producto {
@@ -99,7 +100,6 @@ export class ArticulosComponent implements OnInit {
   startVoiceRecognition() {
     if (this.recognition) {
       this.recognition.start();
-      console.log(this.recognition);
     }
   }
 
@@ -164,100 +164,78 @@ export class ArticulosComponent implements OnInit {
     }
     this.stopVoiceRecognition();
   }
-
+  //
   handleAgregar() {
     if (this.scannedResult && !this.isAddingProduct) {
-      this.isAddingProduct = true;
-      console.log('Ejecutando proceso de agregar');
-      // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore();
-      console.log(`BBDD seleccionada = ${categoriaFirestore}`);
+      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
+        .snapshotChanges()
+        .pipe(
+          map(actions => actions.map(a => {
+            const data = a.payload.doc.data() as Producto;
+            const docId = a.payload.doc.id;
+            return { ...data, docId };
+          })),
+          take(1)
+        )
+        .subscribe((productos: (Producto & { docId: string })[]) => {
+          if (productos.length === 0) {
+            this.isAddingProduct = true;
+            // Aquí se realiza la solicitud a la API si no existe el producto en la base de datos local
+            this.productService.getProductByBarcode(this.scannedResult!)
+              .subscribe(response => {
+                if (response && response.product) {
+                  const productoDeApi = response.product;
+                  console.log(productoDeApi);  // Inspecciona el objeto producto
+                  const descripcion = productoDeApi.product_name || '';
+                  const establecimiento = productoDeApi.stores || '';
+                  const precio = productoDeApi.price_value || productoDeApi.unit_price || 0; // Si la API proporciona el precio
 
-      const verificarExistenciaEnTodasLasBases = (codigo: string): Observable<{ existe: boolean, nombre: string, categoria: string } | null> => {
-        const categorias = Object.values(this.obtenerColeccionFirestore);
-        const verificaciones = categorias.map(coleccion =>
-          this.firestore.collection(coleccion, ref => ref.where('codigo', '==', codigo))
-            .snapshotChanges()
-            .pipe(
-              map(actions => {
-                if (actions.length > 0) {
-                  const data = actions[0].payload.doc.data() as Producto;
-                  return { existe: true, nombre: data.descripcion, categoria: coleccion };
-                }
-                return null;
-              }),
-              take(1)
-            )
-        );
+                  const nuevoProducto: Producto = {
+                    descripcion,
+                    establecimiento,
+                    precio,
+                    cantidadStock: 0,  // Se actualiza después de que el usuario ingrese la cantidad comprada
+                    codigo: this.scannedResult!,
+                    id: Date.now(),
+                    fechaCreacion: new Date()
+                  };
 
-        return forkJoin(verificaciones).pipe(
-          map(resultados => resultados.find(resultado => resultado !== null) || null)
-        );
-      };
-
-      verificarExistenciaEnTodasLasBases(this.scannedResult)
-        .subscribe((resultado) => {
-          if (resultado) {
-            alert(`El producto ${resultado.nombre} ya existe en la base de datos ${resultado.categoria}. No se puede agregar.`);
-            this.isProcessing = false;
-            this.isAddingProduct = false;
-            return;
-          } else {
-            this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
-              .snapshotChanges()
-              .pipe(
-                map(actions => actions.map(a => {
-                  const data = a.payload.doc.data() as Producto;
-                  const docId = a.payload.doc.id;
-                  return { ...data, docId };
-                })),
-                take(1)
-              )
-              .subscribe((productos: (Producto & { docId: string })[]) => {
-                if (productos.length === 0) {
-                  this.productService.getProductByBarcode(this.scannedResult!)
-                    .subscribe(response => {
-                      if (response && response.product) {
-                        const productoDeApi = response.product;
-                        const descripcion = productoDeApi.product_name || '';
-                        const establecimiento = productoDeApi.stores || '';
-                        const precio = productoDeApi.price_value || productoDeApi.unit_price || 0;
-
-                        const nuevoProducto: Producto = {
-                          descripcion,
-                          establecimiento,
-                          precio,
-                          cantidadStock: 0,
-                          codigo: this.scannedResult!,
-                          id: Date.now(),
-                          fechaCreacion: new Date()
-                        };
-
-                        if (!descripcion || !establecimiento) {
-                          this.promptForNewProductDetails(nuevoProducto);
-                        } else {
-                          this.promptForQuantity(nuevoProducto);
-                        }
-                      } else {
-                        this.promptForNewProductDetails();
-                      }
-                    });
+                  // Si la descripción y el establecimiento están vacíos, solicita los detalles manualmente
+                  if (!descripcion || !establecimiento) {
+                    this.promptForNewProductDetails(nuevoProducto);
+                  } else {
+                    // Si la descripción y el establecimiento están completos, solicita la cantidad
+                    this.promptForQuantity(nuevoProducto);
+                  }
                 } else {
-                  const producto = productos[0];
-                  alert('Producto existente');
-                  this.promptForQuantity(producto);
+                  // Si no se encuentra en la API, solicita los detalles manualmente
+                  this.promptForNewProductDetails();
                 }
-                this.isProcessing = false;
               });
+          } else if (productos.length > 0) {
+            const producto = productos[0];
+            Swal.fire({
+              title: 'Producto existente.',
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false
+            });
+            this.promptForQuantity(producto);
           }
+          this.isProcessing = false;
         });
     } else {
-      alert('No se ha detectado ningún código.');
-      this.isProcessing = false;
+      Swal.fire({
+        title: 'No se ha detectado ningún código.',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
     }
   }
-  
-    promptForQuantity(producto: Producto & { docId?: string }) {
+
+  //
+  promptForQuantity(producto: Producto & { docId?: string }) {
     const precioAnterior = producto.precio;
     const nuevoPrecio = prompt('Confirma el precio para ${ producto.descripcion }(anterior: ${ precioAnterior }€), precioAnterior.toString()');
 
@@ -284,7 +262,12 @@ export class ArticulosComponent implements OnInit {
                 fechaUltimaCompra
               })
               .then(() => {
-                alert('Producto actualizado con el nuevo precio y cantidad');
+                Swal.fire({
+                  title: 'Producto actualizado con el nuevo precio y cantidad.',
+                  timer: 2000,
+                  timerProgressBar: true,
+                  showConfirmButton: false
+                });
                 this.scannedResult = null;
                 this.isProcessing = false;
               })
@@ -299,7 +282,12 @@ export class ArticulosComponent implements OnInit {
             this.firestore.collection(this.categoriaSeleccionada!)
               .add(producto)
               .then(() => {
-                alert('Producto actualizado con el nuevo precio y cantidad');
+                Swal.fire({
+                  title: 'Producto agregado con el nuevo precio y cantidad.',
+                  timer: 2000,
+                  timerProgressBar: true,
+                  showConfirmButton: false
+                });
                 this.scannedResult = null;
                 this.isProcessing = false;
               })
@@ -309,20 +297,38 @@ export class ArticulosComponent implements OnInit {
               });
           }
         } else {
-          alert('Cantidad no válida.');
+          Swal.fire({
+            title: 'Cantidad no válida.',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
           this.isProcessing = false;
         }
       } else {
         // El usuario canceló la entrada de cantidad
-        alert('Operación cancelada.');
+        Swal.fire({
+          title: 'Operación cancelada.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         this.isProcessing = false;
       }
     } else {
       // El usuario canceló la entrada de precio o ingresó un valor no válido
+      Swal.fire({
+        title: 'Operación cancelada.',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       this.isProcessing = false;
     }
   }
+  
 
+  //
   promptForNewProductDetails(existingProduct?: Producto) {
     function soloLetras(cadena: string): boolean {
       // Expresión regular para permitir letras con acentos, caracteres especiales, y espacios
@@ -344,7 +350,13 @@ export class ArticulosComponent implements OnInit {
       if (!descripcion) {
         descripcion = null;
       } else if (!soloLetras(descripcion)) {
-        alert('La descripción solo puede contener letras.Por favor, inténtelo nuevamente');
+        Swal.fire({
+          title: 'La descripción solo puede contener letras.',
+          text: 'Por favor, inténtelo nuevamente.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         descripcion = null;
       }
     }
@@ -353,8 +365,23 @@ export class ArticulosComponent implements OnInit {
     while (!establecimiento) {
       establecimiento = prompt('Ingrese el establecimiento:', '');
       if (!establecimiento) {
+      } else if (!soloLetras(descripcion)) {
+        Swal.fire({
+          title: 'El establecimiento es obligatorio.',
+          text: 'Por favor, inserte un valor.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
+        establecimiento = null;
       } else if (!soloLetras(establecimiento)) {
-        alert('El establecimiento solo puede contener letras.Por favor, inténtelo nuevamente');
+        Swal.fire({
+          title: 'El establecimiento solo puede contener letras.',
+          text: 'Por favor, inténtelo nuevamente.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         establecimiento = null;
       }
     }
@@ -371,7 +398,13 @@ export class ArticulosComponent implements OnInit {
         }
       }
       if (isNaN(precioNumerico) || precioNumerico <= 0) {
-        alert('El precio no es válido.Debe ser un número mayor a 0');
+        Swal.fire({
+          title: 'El precio no es válido.',
+          text: 'Debe ser un número mayor a 0.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         precioNumerico = null;  // Resetear para asegurar que se vuelva a solicitar
       }
     }
@@ -388,7 +421,13 @@ export class ArticulosComponent implements OnInit {
         }
       }
       if (isNaN(cantidadComprada) || cantidadComprada <= 0) {
-        alert('La cantidad no es válida.Debe ser un número mayor a 0');
+        Swal.fire({
+          title: 'La cantidad no es válida.',
+          text: 'Debe ser un número mayor a 0.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         cantidadComprada = null;  // Resetear para asegurar que se vuelva a solicitar
       }
     }
@@ -408,7 +447,12 @@ export class ArticulosComponent implements OnInit {
       this.firestore.collection(this.categoriaSeleccionada!)
         .add(nuevoProducto)
         .then(() => {
-          alert('Producto agregado');
+          Swal.fire({
+            title: 'Producto agregado',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
           this.scannedResult = null;
           this.isAddingProduct = false;
         })
@@ -417,43 +461,32 @@ export class ArticulosComponent implements OnInit {
           this.isAddingProduct = false;
         });
     } else {
-      alert('Debe completar todos los campos');
+      Swal.fire({
+        title: 'Debe completar todos los campos',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       this.isAddingProduct = false;
     }
   }
 
+  //
   cancelarOperacion() {
     this.isProcessing = false;
     this.scannedResult = null;
-    alert('Operación cancelada.');
+    Swal.fire({
+      title: 'Operación cancelada',
+      timer: 2000,
+      timerProgressBar: true,
+      showConfirmButton: false
+    });
   }
 
-  eliminarProducto(producto: Producto & { docId: string }) {
-    const confirmar = confirm('¿Estás seguro de que quieres eliminar este producto?');
-    if (confirmar) {
-      this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
-        .delete()
-        .then(() => {
-          alert('Producto eliminado');
-          this.scannedResult = null;
-          this.isProcessing = false;
-        })
-        .catch(error => {
-          console.error('Error al eliminar producto: ', error);
-          this.isProcessing = false;
-        });
-    } else {
-      this.isProcessing = false;
-      this.scannedResult = null;
-    }
-  }
-  
-    handleRetirar() {
+  //
+  handleRetirar() {
     if (this.scannedResult) {
-      // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore();
-
-      this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
+      this.firestore.collection(this.categoriaSeleccionada!, ref => ref.where('codigo', '==', this.scannedResult))
         .snapshotChanges()
         .pipe(
           map(actions => actions.map(a => {
@@ -468,16 +501,26 @@ export class ArticulosComponent implements OnInit {
             const producto = productos[0];
             this.promptForRetirarCantidad(producto);
           } else {
-            alert('Producto no encontrado.');
+            Swal.fire({
+              title: 'Producto no encontrado.',
+              timer: 2000,
+              timerProgressBar: true,
+              showConfirmButton: false
+            });
             this.isProcessing = false;
           }
         });
     } else {
-      alert('No se ha detectado ningún código.');
+      Swal.fire({
+        title: 'No se ha detectado ningún código.',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       this.isProcessing = false;
     }
   }
-
+  //
   promptForRetirarCantidad(producto: Producto & { docId: string }) {
     const cantidad = prompt('Ingrese la cantidad a retirar:', '1');
     if (cantidad) {
@@ -492,31 +535,56 @@ export class ArticulosComponent implements OnInit {
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         if (producto.cantidadStock >= cantidadNumerica) {
           const fechaUltimoRetiro = new Date(); // Se registra la fecha del último retiro
-          this.firestore.collection(this.obtenerColeccionFirestore()).doc(producto.docId)
+          this.firestore.collection(this.categoriaSeleccionada!).doc(producto.docId)
             .update({
               cantidadStock: producto.cantidadStock - cantidadNumerica,
               fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro
             })
             .then(() => {
-              alert('Cantidad retirada');
+              Swal.fire({
+                title: 'Cantidad retirada.',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              });
               this.isProcessing = false;
             })
             .catch(error => {
-              console.error('Error al retirar cantidad: ', error);
+              Swal.fire({
+                title: 'Error al retirar cantidad: ',
+                timer: 2000,
+                timerProgressBar: true,
+                showConfirmButton: false
+              });
               this.scannedResult = null;
               this.isProcessing = false;
             });
         } else {
-          alert('No hay suficiente cantidad en stock.');
+          Swal.fire({
+            title: 'No hay suficiente cantidad en stock.',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+          });
           this.scannedResult = null;
           this.isProcessing = false;
         }
       } else {
-        alert('Cantidad no válida.');
+        Swal.fire({
+          title: 'Cantidad no válida.',
+          timer: 2000,
+          timerProgressBar: true,
+          showConfirmButton: false
+        });
         this.isProcessing = false;
       }
     } else {
-      alert('Operación cancelada.');
+      Swal.fire({
+        title: 'Operación cancelada.',
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+      });
       this.isProcessing = false;
     }
   }
