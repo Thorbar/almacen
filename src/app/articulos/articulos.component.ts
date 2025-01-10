@@ -42,6 +42,8 @@ export class ArticulosComponent implements OnInit {
   isAddingProduct: boolean = false;
   // Variable que define la colección (se determinará en función de la categoría)
   categoriaSeleccionada: string | null = null;
+  selectedCollection: string = ''; // Colección predeterminada
+  email: string = '';
 
   constructor(
     private router: Router,
@@ -52,7 +54,7 @@ export class ArticulosComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log('Component initialized');
+
 
     // Verificar permiso de la cámara al iniciar el componente
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -97,6 +99,7 @@ export class ArticulosComponent implements OnInit {
   startVoiceRecognition() {
     if (this.recognition) {
       this.recognition.start();
+      console.log(this.recognition);
     }
   }
 
@@ -127,18 +130,28 @@ export class ArticulosComponent implements OnInit {
   }
 
   // Función dinámica para determinar la colección de Firestore según la categoría
-  obtenerColeccionFirestore(categoria: string): string {
-    const colecciones: { [key: string]: string } = {
-      'seco': 'Productos_Seco',
-      'all': 'Productos_MERCADONA',
-      // Agrega más colecciones según tus necesidades
-    };
+  obtenerColeccionFirestore(){
+    console.log('Component initialized in articulosComponent');
 
-    return colecciones[categoria] || 'Productos_Otros';  // Default a otra colección si no se encuentra la categoría
+    // Recuperar el email desde sessionStorage al cargar el componente
+    const email = sessionStorage.getItem('userEmail');
+    if (email) {
+      this.email = email;
+      console.log('Email recuperado:', email);
+    } else {
+      console.error('No se encontró el email en sessionStorage');
+    }
+
+    this.selectedCollection = `Almacen_${email}`;
+
+    //this.changeCollection(this.selectedCollection); // Inicializar con la colección predeterminada
+
+    return this.selectedCollection ;  // Default a otra colección si no se encuentra la categoría
   }
 
   handleVoiceCommand(command: string) {
     if (command.includes('agregar')) {
+      console.log('Acción: Agregar producto');
       this.action = 'agregar';
       this.isProcessing = true;
       this.handleAgregar();
@@ -147,7 +160,7 @@ export class ArticulosComponent implements OnInit {
       this.isProcessing = true;
       this.handleRetirar();    
     } else {
-      alert('Comando no reconocido. Intenta decir "agregar", "retirar", "eliminar".');
+      alert('Comando no reconocido. Intenta decir "agregar", "retirar".');
     }
     this.stopVoiceRecognition();
   }
@@ -155,9 +168,10 @@ export class ArticulosComponent implements OnInit {
   handleAgregar() {
     if (this.scannedResult && !this.isAddingProduct) {
       this.isAddingProduct = true;
-
+      console.log('Ejecutando proceso de agregar');
       // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco');
+      const categoriaFirestore = this.obtenerColeccionFirestore();
+      console.log(`BBDD seleccionada = ${categoriaFirestore}`);
 
       const verificarExistenciaEnTodasLasBases = (codigo: string): Observable<{ existe: boolean, nombre: string, categoria: string } | null> => {
         const categorias = Object.values(this.obtenerColeccionFirestore);
@@ -437,7 +451,7 @@ export class ArticulosComponent implements OnInit {
     handleRetirar() {
     if (this.scannedResult) {
       // Obtener colección en función de la categoría seleccionada
-      const categoriaFirestore = this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco');
+      const categoriaFirestore = this.obtenerColeccionFirestore();
 
       this.firestore.collection(categoriaFirestore, ref => ref.where('codigo', '==', this.scannedResult))
         .snapshotChanges()
@@ -478,7 +492,7 @@ export class ArticulosComponent implements OnInit {
       if (!isNaN(cantidadNumerica) && cantidadNumerica > 0) {
         if (producto.cantidadStock >= cantidadNumerica) {
           const fechaUltimoRetiro = new Date(); // Se registra la fecha del último retiro
-          this.firestore.collection(this.obtenerColeccionFirestore(this.categoriaSeleccionada || 'seco')).doc(producto.docId)
+          this.firestore.collection(this.obtenerColeccionFirestore()).doc(producto.docId)
             .update({
               cantidadStock: producto.cantidadStock - cantidadNumerica,
               fechaUltimoRetiro: fechaUltimoRetiro  // Se actualiza la fecha del último retiro

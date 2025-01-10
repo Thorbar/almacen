@@ -8,7 +8,7 @@
   <table class="stock-table">
     <thead>
       <tr>
-        <th>{{ 'ARTICLE_ID' | translate }}</th>
+        <!--  <th>{{ 'ARTICLE_ID' | translate }}</th>-->
         <th>{{ 'DESCRIPTION' | translate }}</th>
         <th>{{ 'ESTABLISHMENT' | translate }}</th>
         <th>{{ 'PRICE' | translate }}</th>
@@ -20,7 +20,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let producto of productos$ | async">
-        <td>{{ producto.internalCode }}</td>
+        <!--   <td>{{ producto.internalCode }}</td> -->
         <td>
           <input [(ngModel)]="producto.descripcion" placeholder="Descripción" />
         </td>
