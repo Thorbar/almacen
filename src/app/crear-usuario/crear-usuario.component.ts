@@ -68,22 +68,7 @@ export class CrearUsuarioComponent {
     this.translate.use(lang);
     localStorage.setItem('selectedLanguage', lang);
   }
- /*
-   showAlert(message: string, type: 'success' | 'error' | 'info' | 'warning' | 'info_email' | 'confirm') {
-    this.errorMessage = message;
-    this.alertType = type;
-    console.log(this.alertType);
-    // Deshabilitar los botones solo si el tipo de alerta no es 'info_email'
-    if (type !== 'info_email') {
-      this.buttonState.isDisabled = true;
-      this.buttonState.isHoverDisabled = true;
-      setTimeout(() => {
-        this.errorMessage = ''; // Ocultar la alerta
-        this.buttonState.isDisabled = false;
-        this.buttonState.isHoverDisabled = false;
-      }, 2000);      
-    }    
-  }*/
+
 
   cancelRegister() {
     this.showRegister = false;
@@ -105,19 +90,19 @@ export class CrearUsuarioComponent {
     });      
   }
 
-   //Confirmar creacion usuario
-   openConfirmDialog(message: string): Promise<boolean> {
-    this.isSubmitDisabled = true; // Deshabilitar el botón
+  openConfirmDialog(message: string): Promise<boolean> {
+    this.buttonDisabled(); // Deshabilitar botones
 
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {      
-      width: '350px',
-      data: { message },
-      position: { top: '-30%',left: '15px'} // Ajusta la posición
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      disableClose: true,
+      position: { top: '-70vh' }, // Ajusta la posición (20% desde arriba)
+      data: { message }
     });
-    return dialogRef.afterClosed().toPromise().finally(() => {
-      this.isSubmitDisabled = false; // Habilitar el botón después de cerrar el diálogo
-    });      
+
+    return dialogRef.afterClosed().toPromise();
   }
+
 
 
   isPasswordValid(password: string): boolean {
@@ -172,7 +157,8 @@ export class CrearUsuarioComponent {
       this.buttonEnabled();
     }, 1500); 
   }
-  async registerUser() {        
+  async registerUser() {
+
       if (!this.newUser.username) {
         const missingUsername = this.translate.instant('EMPTY_USER');
         this.alertComponent.showAlerts(missingUsername, 'warning');
@@ -185,6 +171,13 @@ export class CrearUsuarioComponent {
       this.timerButton();
       return;
     }
+    if (this.newUser.username === this.newUser.passwordRegister) {
+      const invalidUsername = this.translate.instant('INVALID_USER');
+      this.alertComponent.showAlerts(invalidUsername, 'warning');
+      this.timerButton();
+      return;
+    }
+
     if (!this.newUser.passwordRegister) {
       const missingPassword = this.translate.instant('EMPTY_PASSWORD');
       this.alertComponent.showAlerts(missingPassword, 'warning');
@@ -257,75 +250,69 @@ export class CrearUsuarioComponent {
       return;
     } 
 
-     // Abrir el diálogo para confirmar el email principal
-     const confirmedEmail = await this.openEmailConfirmDialog(this.newUser.username);   
-     // Verificar si el usuario aceptó el primer diálogo
-     if (confirmedEmail) {      
-         // Abrir el segundo diálogo para confirmar la creación del usuario
-         const confirmed = await this.openConfirmDialog(this.newUser.username);
-         if (confirmed) {
+    try {
+      const auth = getAuth();
+      const existingUser = await fetchSignInMethodsForEmail(auth, this.newUser.email);
 
-      try {
-        const auth = getAuth();
-        const existingUser = await fetchSignInMethodsForEmail(auth, this.newUser.email);
-        console.log('existingUser ', existingUser);
-
-
-        if (existingUser.length > 0) {
-         // this.showAlert(this.translate.instant('EMAIL_ALREADY_EXISTS'), 'error');
-          console.log('EMAIL_ALREADY_EXISTS ', existingUser);
-          return;
-        }
-        // Crear usuario en Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, this.newUser.email, this.newUser.passwordRegister);
-        console.log('userCredential ', userCredential);
-        const userId = userCredential.user.uid; // Obtener el UID del usuario
-        console.log('userId ', userId);
-
-        /*
-        // Crear documento en Firestore para el proyecto
-        await this.firestore.collection('projects').doc(`almacen_${this.newUser.username}`).set({
-          firstName: this.newUser.firstName,
-          lastName: this.newUser.lastName,
-          dob: this.newUser.dob,
-          email: this.newUser.email,
-          username: this.newUser.username,
-          emailPrincipal: this.newUser.emailPrincipal || null,
-          createdAt: new Date()
-        });
-  */
-
-        // Aquí es donde creamos el proyecto almacen dentro de su cuenta Firebase
-        await this.createUserProject(userCredential.user);      
-        //this.showAlert(this.translate.instant('ACCOUNT_CREATED'), 'success');
-        console.log('ACCOUNT_CREATED ', userCredential.user);
-        this.showRegister = false;
-        this.router.navigate(['']);
-      
-      } catch (error) {
-        //this.showAlert(this.translate.instant('ERROR_CREATING_ACCOUNT'||'TRY_AGAIN'), 'error');
-      } finally {
+      if (existingUser.length > 0) {
+        // Mostrar alerta si el email ya existe
+        const existingUser = this.translate.instant('EMAIL_ALREADY_EXISTS');
+        this.alertComponent.showAlerts(existingUser, 'error');
+        console.log('EMAIL_ALREADY_EXISTS', existingUser);
+        this.timerButton();
+        return;
       }
-           
-         }else{
-           // this.showAlert(this.translate.instant('REGISTRATION_CANCELLED'), 'info');
-            return;          
-         }
-     } else{
-      //this.showAlert(this.translate.instant('REGISTRATION_CANCELLED'), 'info');
-      return;    
-     }  
+      if (this.isSubmitDisabled) return; // Evita que se abra más de un diálogo
+
+      this.isSubmitDisabled = true; // Deshabilita botones antes de abrir el diálogo
+      // Si el email no existe, pedir confirmación al usuario
+      const confirmed = await this.openConfirmDialog(this.newUser.username);
+      if (!confirmed) {
+        const existingUser = this.translate.instant('REGISTRATION_CANCELLED');
+        this.alertComponent.showAlerts(existingUser, 'error');
+        console.log('REGISTRATION_CANCELLED', existingUser);
+        this.timerButton();
+        return;
+      }
+
+      // Crear usuario en Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, this.newUser.email, this.newUser.passwordRegister);
+      console.log('userCredential', userCredential);
+      const userId = userCredential.user.uid;
+      console.log('userId', userId);
+
+      // Crear el proyecto en Firestore
+      await this.createUserProject(userCredential.user);
+
+      const accountCreated = this.translate.instant('ACCOUNT_CREATED');
+      this.alertComponent.showAlerts(accountCreated, 'success');
+      console.log('ACCOUNT_CREATED', userCredential.user);
+      this.showRegister = false;
+      this.router.navigate(['']);
+
+    } catch (error) {
+
+      const errorCreated = this.translate.instant('EMAIL_ALREADY_EXISTS');
+      this.alertComponent.showAlerts(errorCreated, 'error');
+      this.timerButton();
+
+      console.error(error);
+    } 
   }
+
   async createUserProject(user: User) {
       // Obtener una referencia a la Firestore del usuario autenticado
       const userFirestore = this.getUserFirestore(user);
 
       // Crear un proyecto 'almacen' dentro de la cuenta del usuario
-      await userFirestore.collection('projects').doc('almacen').set({
-          nombre: `Almacén de ${user.displayName || user.email}`,
-          descripcion: `Descripción del almacén de ${user.displayName || user.email}`,
-          creadoEn: new Date()
-      });
+    await userFirestore.collection(`${user.email}`).doc('Datos').set({
+      Nombre: this.newUser.firstName,
+      Apellidos: this.newUser.lastName,
+      Fecha_de_nacimiento: this.newUser.dob,
+      email: this.newUser.email,
+      usuario: this.newUser.username,      
+      fechaCreaciónCuenta: new Date()
+    });
   }
 
   getUserFirestore(user: User): AngularFirestore {
@@ -335,5 +322,27 @@ export class CrearUsuarioComponent {
       // No es necesario pasar ningún UID manualmente.
 
       return this.firestore; // La misma instancia de AngularFirestore que usas en toda la aplicación
-    }  
   }
+
+  limitYearLength(event: Event) {
+    const input = event.target as HTMLInputElement;
+    let parts = input.value.split('-'); // Separar por año-mes-día
+    console.log('parts ', parts);
+
+    if (parts.length === 3) {
+      let year = parts[0];
+      console.log('year ', year.length);
+
+      // Evitar que el usuario escriba más de 4 caracteres en el año
+      if (year.length > 4) {//&& event.key !== 'Backspace' && event.key !== 'Tab') {
+        console.log('bloqueado');
+        parts[0] = year.substring(0, 4);
+        input.value = parts.join('-'); // Restaurar el valor corregido
+
+        //event.preventDefault(); // Bloquea la entrada de más caracteres
+      }
+    }
+  }
+
+
+}
